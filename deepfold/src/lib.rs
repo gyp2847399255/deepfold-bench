@@ -1,5 +1,73 @@
+use util::{algebra::field::Field, merkle_tree::MERKLE_ROOT_SIZE, query_result::QueryResult};
+
 pub mod prover;
 pub mod verifier;
+
+#[derive(Clone)]
+pub struct DeepEval<T: Field> {
+    point: Vec<T>,
+    first_eval: T,
+    else_evals: Vec<T>,
+}
+
+impl<T: Field> DeepEval<T> {
+    pub fn new(point: Vec<T>, poly_hypercube: Vec<T>) -> Self {
+        DeepEval {
+            point: point.clone(),
+            first_eval: Self::evaluatioin_at(point, poly_hypercube),
+            else_evals: vec![],
+        }
+    }
+
+    fn evaluatioin_at(point: Vec<T>, mut poly_hypercube: Vec<T>) -> T {
+        let mut len = poly_hypercube.len();
+        assert_eq!(len, 1 << point.len());
+        for v in point.into_iter() {
+            len >>= 1;
+            for i in 0..len {
+                poly_hypercube[i] *= T::from_int(1) - v;
+                let tmp = poly_hypercube[i + len] * v;
+                poly_hypercube[i] += tmp;
+            }
+        }
+        poly_hypercube[0]
+    }
+
+    pub fn append_else_eval(&mut self, poly_hypercube: Vec<T>) {
+        let mut point = self.point[self.else_evals.len()..].to_vec();
+        point[0] += T::from_int(1);
+        self.else_evals
+            .push(Self::evaluatioin_at(point, poly_hypercube));
+    }
+
+    pub fn verify(&self, challenges: &Vec<T>) -> T {
+        let (_, challenges) = challenges.split_at(challenges.len() - self.point.len());
+        let mut y_0 = self.first_eval;
+        assert_eq!(self.point.len(), self.else_evals.len());
+        for ((x, eval), challenge) in self
+            .point
+            .iter()
+            .zip(self.else_evals.iter())
+            .zip(challenges.into_iter())
+        {
+            let y_1 = eval.clone();
+            y_0 += (y_1 - y_0) * (challenge.clone() - x.clone());
+        }
+        y_0
+    }
+}
+
+pub struct Commit<T: Field> {
+    merkle_root: [u8; MERKLE_ROOT_SIZE],
+    deep: T
+}
+
+pub struct Proof<T: Field> {
+    merkle_root: [u8; MERKLE_ROOT_SIZE],
+    query_result: QueryResult<T>,
+    deep_evals: Vec<Vec<T>>,
+    shuffle_evals: Vec<T>
+}
 
 #[cfg(test)]
 mod tests {

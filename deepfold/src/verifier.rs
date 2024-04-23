@@ -6,7 +6,7 @@ use util::{
     query_result::QueryResult,
 };
 
-use crate::prover::DeepEval;
+use crate::DeepEval;
 
 #[derive(Clone)]
 pub struct Verifier<T: Field> {
