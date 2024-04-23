@@ -6,6 +6,8 @@ use util::{
     query_result::QueryResult,
 };
 
+use crate::prover::DeepEval;
+
 #[derive(Clone)]
 pub struct Verifier<T: Field> {
     total_round: usize,
@@ -14,6 +16,7 @@ pub struct Verifier<T: Field> {
     oracle: RandomOracle<T>,
     final_value: Option<T>,
     shuffle_eval: Vec<T>,
+    deep_evals: Vec<DeepEval<T>>,
     open_point: Vec<T>,
     evaluation: Option<T>,
 }
@@ -32,6 +35,7 @@ impl<T: Field> Verifier<T> {
             polynomial_roots: vec![MerkleTreeVerifier::new(coset[0].size() / 2, &commit)],
             final_value: None,
             shuffle_eval: vec![],
+            deep_evals: vec![],
             open_point: (0..total_round).map(|_| T::random_element()).collect(),
             evaluation: None,
         }
@@ -54,6 +58,10 @@ impl<T: Field> Verifier<T> {
             leave_number,
             merkle_root: folding_root,
         });
+    }
+
+    pub fn receive_deep_eval(&mut self, deep_eval: DeepEval<T>) {
+        self.deep_evals.push(deep_eval);
     }
 
     pub fn set_evalutation(&mut self, evaluation: T) {
@@ -83,13 +91,19 @@ impl<T: Field> Verifier<T> {
             let y_1 = self.shuffle_eval[i];
             let x = self.open_point[i];
             y_0 += (y_1 - y_0) * (challenge - x);
+            if i == self.total_round - 1 {
+                assert_eq!(y_0, self.final_value.unwrap());
+                let challenges = self.oracle.folding_challenges[0..self.total_round].to_vec();
+                for j in &self.deep_evals {
+                    assert_eq!(j.verify(&challenges), self.final_value.unwrap());
+                }
+            }
             for j in &leaf_indices {
                 let x = folding_value[j];
                 let nx = folding_value[&(j + domain_size / 2)];
                 let v =
                     x + nx + challenge * (x - nx) * self.interpolate_cosets[i].element_inv_at(*j);
                 if i == self.total_round - 1 {
-                    assert_eq!(y_0, self.final_value.unwrap());
                     assert_eq!(v * T::INVERSE_2, self.final_value.unwrap());
                 } else {
                     assert_eq!(v * T::INVERSE_2, polynomial_proof[i + 1].proof_values[j]);
