@@ -1,9 +1,5 @@
 use util::{
-    algebra::{
-        coset::Coset,
-        field::Field,
-        polynomial::{EqMultilinear, MultilinearPolynomial},
-    },
+    algebra::{coset::Coset, field::Field, polynomial::MultilinearPolynomial},
     interpolation::InterpolateValue,
     merkle_tree::MERKLE_ROOT_SIZE,
     query_result::QueryResult,
@@ -20,7 +16,7 @@ pub struct Prover<T: Field> {
     interpolations: Vec<InterpolateValue<T>>,
     hypercube_interpolation: Vec<T>,
     // deep_eval: Vec<(T, T)>,
-    shuffle_eval: Vec<(T, T)>,
+    shuffle_eval: Vec<T>,
     oracle: RandomOracle<T>,
     final_value: Option<T>,
 }
@@ -115,14 +111,11 @@ impl<T: Field> Prover<T> {
     pub fn prove(&mut self, point: Vec<T>) {
         let mut poly_hypercube = self.hypercube_interpolation.clone();
         for i in 0..self.total_round {
-            self.shuffle_eval.push((
-                Self::evaluate_at(&poly_hypercube, (&point[i..]).to_vec()),
-                Self::evaluate_at(&poly_hypercube, {
-                    let mut neg_point = (&point[i..]).to_vec();
-                    neg_point[0] = -neg_point[0];
-                    neg_point
-                }),
-            ));
+            self.shuffle_eval.push(Self::evaluate_at(&poly_hypercube, {
+                let mut else_point = (&point[i..]).to_vec();
+                else_point[0] += T::from_int(1);
+                else_point
+            }));
             let m = 1 << (self.total_round - i - 1);
             let challenge = self.oracle.folding_challenges[i];
             let next_evalutation = self.evaluation_next_domain(i, challenge);
