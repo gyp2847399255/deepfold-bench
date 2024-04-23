@@ -13,7 +13,7 @@ pub struct Verifier<T: Field> {
     polynomial_roots: Vec<MerkleTreeVerifier>,
     oracle: RandomOracle<T>,
     final_value: Option<T>,
-    shuffle_eval: Vec<(T, T)>,
+    shuffle_eval: Vec<T>,
     open_point: Vec<T>,
     evaluation: Option<T>,
 }
@@ -41,7 +41,7 @@ impl<T: Field> Verifier<T> {
         self.open_point.clone()
     }
 
-    pub fn receive_shuffle_eval(&mut self, value: (T, T)) {
+    pub fn receive_shuffle_eval(&mut self, value: T) {
         self.shuffle_eval.push(value);
     }
 
@@ -66,6 +66,7 @@ impl<T: Field> Verifier<T> {
 
     pub fn verify(&self, polynomial_proof: &Vec<QueryResult<T>>) -> bool {
         let mut leaf_indices = self.oracle.query_list.clone();
+        let mut y_0 = self.evaluation.unwrap();
         for i in 0..self.total_round {
             let domain_size = self.interpolate_cosets[i].size();
             leaf_indices = leaf_indices
@@ -84,14 +85,13 @@ impl<T: Field> Verifier<T> {
                 let nx = folding_value[&(j + domain_size / 2)];
                 let v =
                     x + nx + challenge * (x - nx) * self.interpolate_cosets[i].element_inv_at(*j);
-                let (y_0, y_1) = self.shuffle_eval[i];
+                let y_1 = self.shuffle_eval[i];
                 let x = self.open_point[i];
-                let y_2 = (y_0 + y_1) * T::INVERSE_2 + (y_0 - y_1) * T::INVERSE_2 * x.inverse() * challenge;
+                y_0 = (y_0 + y_1) * T::INVERSE_2 + (y_0 - y_1) * T::INVERSE_2 * x.inverse() * challenge;
                 if i == self.total_round - 1 {
-                    assert_eq!(y_2, self.final_value.unwrap());
+                    assert_eq!(y_0, self.final_value.unwrap());
                     assert_eq!(v * T::INVERSE_2, self.final_value.unwrap());
                 } else {
-                    assert_eq!(y_2, self.shuffle_eval[i + 1].0);
                     assert_eq!(v * T::INVERSE_2, polynomial_proof[i + 1].proof_values[j]);
                 }
             }
