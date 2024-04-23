@@ -31,7 +31,6 @@ mod tests {
         let commit = prover.commit_polynomial();
         let mut verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
         let point = verifier.get_open_point();
-        prover.send_evaluation(&mut verifier, &point);
         prover.prove(point);
         prover.commit_foldings(&mut verifier);
         let proof = prover.query();

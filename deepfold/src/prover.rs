@@ -16,17 +16,15 @@ pub struct DeepEval<T: Field> {
 }
 
 impl<T: Field> DeepEval<T> {
-    pub fn new(point: Vec<T>, first_eval: T) -> Self {
+    pub fn new(point: Vec<T>, poly_hypercube: Vec<T>) -> Self {
         DeepEval {
-            point,
-            first_eval,
+            point: point.clone(),
+            first_eval: Self::evaluatioin_at(point, poly_hypercube),
             else_evals: vec![],
         }
     }
 
-    pub fn append_else_eval(&mut self, mut poly_hypercube: Vec<T>) {
-        let mut point = self.point[self.else_evals.len()..].to_vec();
-        point[0] += T::from_int(1);
+    fn evaluatioin_at(point: Vec<T>, mut poly_hypercube: Vec<T>) -> T {
         let mut len = poly_hypercube.len();
         assert_eq!(len, 1 << point.len());
         for v in point.into_iter() {
@@ -37,7 +35,14 @@ impl<T: Field> DeepEval<T> {
                 poly_hypercube[i] += tmp;
             }
         }
-        self.else_evals.push(poly_hypercube[0]);
+        poly_hypercube[0]
+    }
+
+    pub fn append_else_eval(&mut self, poly_hypercube: Vec<T>) {
+        let mut point = self.point[self.else_evals.len()..].to_vec();
+        point[0] += T::from_int(1);
+        self.else_evals
+            .push(Self::evaluatioin_at(point, poly_hypercube));
     }
 
     pub fn verify(&self, challenges: &Vec<T>) -> T {
@@ -61,11 +66,10 @@ impl<T: Field> DeepEval<T> {
 pub struct Prover<T: Field> {
     total_round: usize,
     interpolate_cosets: Vec<Coset<T>>,
-    polynomial: MultilinearPolynomial<T>,
     interpolations: Vec<InterpolateValue<T>>,
     hypercube_interpolation: Vec<T>,
     deep_eval: Vec<DeepEval<T>>,
-    shuffle_eval: Vec<T>,
+    shuffle_eval: Option<DeepEval<T>>,
     oracle: RandomOracle<T>,
     final_value: Option<T>,
 }
@@ -85,8 +89,7 @@ impl<T: Field> Prover<T> {
             )],
             hypercube_interpolation: polynomial.evaluate_hypercube(),
             deep_eval: vec![],
-            shuffle_eval: vec![],
-            polynomial,
+            shuffle_eval: None,
             oracle: oracle.clone(),
             final_value: None,
         }
@@ -98,7 +101,7 @@ impl<T: Field> Prover<T> {
             .collect::<Vec<_>>();
         self.deep_eval.push(DeepEval::new(
             point.clone(),
-            Self::evaluate_at(&self.hypercube_interpolation, point.clone()),
+            self.hypercube_interpolation.clone(),
         ));
         self.interpolations[0].commit()
     }
@@ -108,17 +111,11 @@ impl<T: Field> Prover<T> {
             let interpolation = &self.interpolations[i];
             verifier.receive_folding_root(interpolation.leave_num(), interpolation.commit());
         }
-        for i in &self.shuffle_eval {
-            verifier.receive_shuffle_eval(i.clone());
-        }
+        verifier.receive_shuffle_eval(self.shuffle_eval.clone().unwrap());
         for i in &self.deep_eval {
             verifier.receive_deep_eval(i.clone());
         }
         verifier.set_final_value(self.final_value.unwrap());
-    }
-
-    pub fn send_evaluation(&self, verifier: &mut Verifier<T>, point: &Vec<T>) {
-        verifier.set_evalutation(self.polynomial.evaluate(point));
     }
 
     fn evaluation_next_domain(&self, round: usize, challenge: T) -> Vec<T> {
@@ -141,39 +138,22 @@ impl<T: Field> Prover<T> {
             let tmp = hypercube_interpolation[i + m] * challenge;
             hypercube_interpolation[i] += tmp;
         }
-    }
-
-    fn evaluate_at(hypercube_interpolation: &Vec<T>, point: Vec<T>) -> T {
-        let mut len = 1 << point.len();
-        let mut res = hypercube_interpolation
-            .iter()
-            .take(len)
-            .map(|x| x.clone())
-            .collect::<Vec<_>>();
-        for v in point.into_iter() {
-            len >>= 1;
-            Self::sumcheck_next_domain(&mut res, len, v);
-        }
-        res[0]
+        hypercube_interpolation.truncate(m);
     }
 
     pub fn prove(&mut self, point: Vec<T>) {
         let mut hypercube_interpolation = self.hypercube_interpolation.clone();
+        self.shuffle_eval = Some(DeepEval::new(
+            point.clone(),
+            hypercube_interpolation.clone(),
+        ));
         for i in 0..self.total_round {
             self.shuffle_eval
-                .push(Self::evaluate_at(&hypercube_interpolation, {
-                    let mut else_point = (&point[i..]).to_vec();
-                    else_point[0] += T::from_int(1);
-                    else_point
-                }));
+                .as_mut()
+                .unwrap()
+                .append_else_eval(hypercube_interpolation.clone());
             for deep in &mut self.deep_eval {
-                deep.append_else_eval(
-                    hypercube_interpolation
-                        .iter()
-                        .take(1 << (self.total_round - i))
-                        .map(|x| x.clone())
-                        .collect(),
-                );
+                deep.append_else_eval(hypercube_interpolation.clone());
             }
 
             let m = 1 << (self.total_round - i - 1);
@@ -186,10 +166,7 @@ impl<T: Field> Prover<T> {
                         std::iter::successors(Some(self.oracle.deep[i + 1]), |&x| Some(x * x))
                             .take(self.total_round - i - 1)
                             .collect::<Vec<_>>();
-                    DeepEval::new(
-                        deep_point.clone(),
-                        Self::evaluate_at(&hypercube_interpolation, deep_point),
-                    )
+                    DeepEval::new(deep_point.clone(), hypercube_interpolation.clone())
                 });
                 self.interpolations
                     .push(InterpolateValue::new(next_evalutation));

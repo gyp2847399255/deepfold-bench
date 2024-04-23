@@ -15,10 +15,9 @@ pub struct Verifier<T: Field> {
     polynomial_roots: Vec<MerkleTreeVerifier>,
     oracle: RandomOracle<T>,
     final_value: Option<T>,
-    shuffle_eval: Vec<T>,
+    shuffle_eval: Option<DeepEval<T>>,
     deep_evals: Vec<DeepEval<T>>,
     open_point: Vec<T>,
-    evaluation: Option<T>,
 }
 
 impl<T: Field> Verifier<T> {
@@ -34,10 +33,9 @@ impl<T: Field> Verifier<T> {
             oracle: oracle.clone(),
             polynomial_roots: vec![MerkleTreeVerifier::new(coset[0].size() / 2, &commit)],
             final_value: None,
-            shuffle_eval: vec![],
+            shuffle_eval: None,
             deep_evals: vec![],
             open_point: (0..total_round).map(|_| T::random_element()).collect(),
-            evaluation: None,
         }
     }
 
@@ -45,8 +43,8 @@ impl<T: Field> Verifier<T> {
         self.open_point.clone()
     }
 
-    pub fn receive_shuffle_eval(&mut self, value: T) {
-        self.shuffle_eval.push(value);
+    pub fn receive_shuffle_eval(&mut self, shuffle_eval: DeepEval<T>) {
+        self.shuffle_eval = Some(shuffle_eval);
     }
 
     pub fn receive_folding_root(
@@ -64,17 +62,12 @@ impl<T: Field> Verifier<T> {
         self.deep_evals.push(deep_eval);
     }
 
-    pub fn set_evalutation(&mut self, evaluation: T) {
-        self.evaluation = Some(evaluation);
-    }
-
     pub fn set_final_value(&mut self, value: T) {
         self.final_value = Some(value);
     }
 
     pub fn verify(&self, polynomial_proof: &Vec<QueryResult<T>>) -> bool {
         let mut leaf_indices = self.oracle.query_list.clone();
-        let mut y_0 = self.evaluation.unwrap();
         for i in 0..self.total_round {
             let domain_size = self.interpolate_cosets[i].size();
             leaf_indices = leaf_indices
@@ -88,12 +81,12 @@ impl<T: Field> Verifier<T> {
             let folding_value = &polynomial_proof[i].proof_values;
             let challenge = self.oracle.folding_challenges[i];
 
-            let y_1 = self.shuffle_eval[i];
-            let x = self.open_point[i];
-            y_0 += (y_1 - y_0) * (challenge - x);
             if i == self.total_round - 1 {
-                assert_eq!(y_0, self.final_value.unwrap());
                 let challenges = self.oracle.folding_challenges[0..self.total_round].to_vec();
+                assert_eq!(
+                    self.shuffle_eval.as_ref().unwrap().verify(&challenges),
+                    self.final_value.unwrap()
+                );
                 for j in &self.deep_evals {
                     assert_eq!(j.verify(&challenges), self.final_value.unwrap());
                 }
