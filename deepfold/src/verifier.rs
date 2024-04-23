@@ -80,14 +80,14 @@ impl<T: Field> Verifier<T> {
             let folding_value = &polynomial_proof[i].proof_values;
             let challenge = self.oracle.folding_challenges[i];
 
+            let y_1 = self.shuffle_eval[i];
+            let x = self.open_point[i];
+            y_0 += (y_1 - y_0) * (challenge - x);
             for j in &leaf_indices {
                 let x = folding_value[j];
                 let nx = folding_value[&(j + domain_size / 2)];
                 let v =
                     x + nx + challenge * (x - nx) * self.interpolate_cosets[i].element_inv_at(*j);
-                let y_1 = self.shuffle_eval[i];
-                let x = self.open_point[i];
-                y_0 = (y_0 + y_1) * T::INVERSE_2 + (y_0 - y_1) * T::INVERSE_2 * x.inverse() * challenge;
                 if i == self.total_round - 1 {
                     assert_eq!(y_0, self.final_value.unwrap());
                     assert_eq!(v * T::INVERSE_2, self.final_value.unwrap());
