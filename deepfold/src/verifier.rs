@@ -48,30 +48,7 @@ impl<T: Field> Verifier<T> {
         self.open_point.clone()
     }
 
-    // pub fn receive_shuffle_eval(&mut self, shuffle_eval: DeepEval<T>) {
-    //     self.shuffle_eval = Some(shuffle_eval);
-    // }
-
-    // pub fn receive_folding_root(
-    //     &mut self,
-    //     leave_number: usize,
-    //     folding_root: [u8; MERKLE_ROOT_SIZE],
-    // ) {
-    //     self.polynomial_roots.push(MerkleTreeVerifier {
-    //         leave_number,
-    //         merkle_root: folding_root,
-    //     });
-    // }
-
-    // pub fn receive_deep_eval(&mut self, deep_eval: DeepEval<T>) {
-    //     self.deep_evals.push(deep_eval);
-    // }
-
-    // pub fn set_final_value(&mut self, value: T) {
-    //     self.final_value = Some(value);
-    // }
-
-    pub fn veri(&mut self, proof: Proof<T>) {
+    pub fn verify(mut self, proof: Proof<T>) -> bool {
         self.final_value = Some(proof.final_value);
         let mut leave_number = self.interpolate_cosets[0].size() / 2;
         for merkle_root in proof.merkle_root {
@@ -100,10 +77,10 @@ impl<T: Field> Verifier<T> {
                     else_evals,
                 });
             });
-        self.verify(&proof.query_result);
+        self._verify(&proof.query_result)
     }
 
-    pub fn verify(&self, polynomial_proof: &Vec<QueryResult<T>>) -> bool {
+    fn _verify(&self, polynomial_proof: &Vec<QueryResult<T>>) -> bool {
         let mut leaf_indices = self.oracle.query_list.clone();
         for i in 0..self.total_round {
             let domain_size = self.interpolate_cosets[i].size();

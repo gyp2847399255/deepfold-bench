@@ -59,9 +59,10 @@ impl<T: Field> DeepEval<T> {
 
 pub struct Commit<T: Field> {
     merkle_root: [u8; MERKLE_ROOT_SIZE],
-    deep: T
+    deep: T,
 }
 
+#[derive(Clone)]
 pub struct Proof<T: Field> {
     merkle_root: Vec<[u8; MERKLE_ROOT_SIZE]>,
     query_result: Vec<QueryResult<T>>,
@@ -95,14 +96,13 @@ mod tests {
             interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
         }
         let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
-        let mut prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
+        let prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
         let commit = prover.commit_polynomial();
-        let mut verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
+        let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
         let point = verifier.get_open_point();
         let proof = prover.generate_proof(point);
-        verifier.veri(proof);
+        assert!(verifier.verify(proof));
         0
-        // assert!(verifier.veri(&proof));
         // proof.iter().map(|x| x.proof_size()).sum::<usize>()
         //     + variable_num * (MERKLE_ROOT_SIZE + size_of::<Mersenne61Ext>() * 3)
     }
