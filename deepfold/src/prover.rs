@@ -2,13 +2,11 @@ use util::{
     algebra::{coset::Coset, field::Field, polynomial::MultilinearPolynomial},
     interpolation::InterpolateValue,
     merkle_tree::MERKLE_ROOT_SIZE,
-    query_result::QueryResult,
+    query_result::{self, QueryResult},
     random_oracle::RandomOracle,
 };
 
-use crate::{verifier::Verifier, Commit, DeepEval};
-
-
+use crate::{verifier::Verifier, Commit, DeepEval, Proof};
 
 #[derive(Clone)]
 pub struct Prover<T: Field> {
@@ -53,21 +51,21 @@ impl<T: Field> Prover<T> {
         ));
         Commit {
             merkle_root: self.interpolations[0].commit(),
-            deep: self.deep_eval[0].first_eval
-        }        
+            deep: self.deep_eval[0].first_eval,
+        }
     }
 
-    pub fn commit_foldings(&self, verifier: &mut Verifier<T>) {
-        for i in 1..self.total_round {
-            let interpolation = &self.interpolations[i];
-            verifier.receive_folding_root(interpolation.leave_num(), interpolation.commit());
-        }
-        verifier.receive_shuffle_eval(self.shuffle_eval.clone().unwrap());
-        for i in &self.deep_eval {
-            verifier.receive_deep_eval(i.clone());
-        }
-        verifier.set_final_value(self.final_value.unwrap());
-    }
+    // pub fn commit_foldings(&self, verifier: &mut Verifier<T>) {
+    //     for i in 1..self.total_round {
+    //         let interpolation = &self.interpolations[i];
+    //         verifier.receive_folding_root(interpolation.leave_num(), interpolation.commit());
+    //     }
+    //     verifier.receive_shuffle_eval(self.shuffle_eval.clone().unwrap());
+    //     for i in &self.deep_eval {
+    //         verifier.receive_deep_eval(i.clone());
+    //     }
+    //     verifier.set_final_value(self.final_value.unwrap());
+    // }
 
     fn evaluation_next_domain(&self, round: usize, challenge: T) -> Vec<T> {
         let mut res = vec![];
@@ -141,7 +139,23 @@ impl<T: Field> Prover<T> {
         res
     }
 
-    pub fn generate_proof(&mut self) {
-
+    pub fn generate_proof(&mut self, point: Vec<T>) -> Proof<T> {
+        self.prove(point);
+        let query_result = self.query();
+        Proof {
+            merkle_root: (1..self.total_round)
+                .into_iter()
+                .map(|x| self.interpolations[x].commit())
+                .collect(),
+            query_result,
+            deep_evals: self
+                .deep_eval
+                .iter()
+                .map(|x| (x.first_eval, x.else_evals.clone()))
+                .collect(),
+            shuffle_evals: self.shuffle_eval.as_ref().unwrap().else_evals.clone(),
+            final_value: self.final_value.unwrap(),
+            evaluation: self.shuffle_eval.as_ref().unwrap().first_eval
+        }
     }
 }

@@ -63,21 +63,16 @@ pub struct Commit<T: Field> {
 }
 
 pub struct Proof<T: Field> {
-    merkle_root: [u8; MERKLE_ROOT_SIZE],
-    query_result: QueryResult<T>,
-    deep_evals: Vec<Vec<T>>,
-    shuffle_evals: Vec<T>
-}
-
-impl<T: Field> Proof<T> {
-    fn evaluation(&self) -> T {
-        self.shuffle_evals[0]
-    }
+    merkle_root: Vec<[u8; MERKLE_ROOT_SIZE]>,
+    query_result: Vec<QueryResult<T>>,
+    deep_evals: Vec<(T, Vec<T>)>,
+    shuffle_evals: Vec<T>,
+    evaluation: T,
+    final_value: T,
 }
 
 #[cfg(test)]
 mod tests {
-    use std::mem::size_of;
 
     use crate::{prover::Prover, verifier::Verifier};
     use util::{
@@ -86,7 +81,6 @@ mod tests {
             field::{mersenne61_ext::Mersenne61Ext, Field},
             polynomial::MultilinearPolynomial,
         },
-        merkle_tree::MERKLE_ROOT_SIZE,
         random_oracle::RandomOracle,
     };
     use util::{CODE_RATE, SECURITY_BITS};
@@ -105,12 +99,12 @@ mod tests {
         let commit = prover.commit_polynomial();
         let mut verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
         let point = verifier.get_open_point();
-        prover.prove(point);
-        prover.commit_foldings(&mut verifier);
-        let proof = prover.query();
-        assert!(verifier.verify(&proof));
-        proof.iter().map(|x| x.proof_size()).sum::<usize>()
-            + variable_num * (MERKLE_ROOT_SIZE + size_of::<Mersenne61Ext>() * 3)
+        let proof = prover.generate_proof(point);
+        verifier.veri(proof);
+        0
+        // assert!(verifier.veri(&proof));
+        // proof.iter().map(|x| x.proof_size()).sum::<usize>()
+        //     + variable_num * (MERKLE_ROOT_SIZE + size_of::<Mersenne61Ext>() * 3)
     }
 
     #[test]

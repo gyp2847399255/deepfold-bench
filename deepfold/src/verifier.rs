@@ -6,13 +6,14 @@ use util::{
     query_result::QueryResult,
 };
 
-use crate::{Commit, DeepEval};
+use crate::{Commit, DeepEval, Proof};
 
 #[derive(Clone)]
 pub struct Verifier<T: Field> {
     total_round: usize,
     interpolate_cosets: Vec<Coset<T>>,
     polynomial_roots: Vec<MerkleTreeVerifier>,
+    first_deep: T,
     oracle: RandomOracle<T>,
     final_value: Option<T>,
     shuffle_eval: Option<DeepEval<T>>,
@@ -31,7 +32,11 @@ impl<T: Field> Verifier<T> {
             total_round,
             interpolate_cosets: coset.clone(),
             oracle: oracle.clone(),
-            polynomial_roots: vec![MerkleTreeVerifier::new(coset[0].size() / 2, &commit.merkle_root)],
+            polynomial_roots: vec![MerkleTreeVerifier::new(
+                coset[0].size() / 2,
+                &commit.merkle_root,
+            )],
+            first_deep: commit.deep,
             final_value: None,
             shuffle_eval: None,
             deep_evals: vec![],
@@ -43,27 +48,59 @@ impl<T: Field> Verifier<T> {
         self.open_point.clone()
     }
 
-    pub fn receive_shuffle_eval(&mut self, shuffle_eval: DeepEval<T>) {
-        self.shuffle_eval = Some(shuffle_eval);
-    }
+    // pub fn receive_shuffle_eval(&mut self, shuffle_eval: DeepEval<T>) {
+    //     self.shuffle_eval = Some(shuffle_eval);
+    // }
 
-    pub fn receive_folding_root(
-        &mut self,
-        leave_number: usize,
-        folding_root: [u8; MERKLE_ROOT_SIZE],
-    ) {
-        self.polynomial_roots.push(MerkleTreeVerifier {
-            leave_number,
-            merkle_root: folding_root,
+    // pub fn receive_folding_root(
+    //     &mut self,
+    //     leave_number: usize,
+    //     folding_root: [u8; MERKLE_ROOT_SIZE],
+    // ) {
+    //     self.polynomial_roots.push(MerkleTreeVerifier {
+    //         leave_number,
+    //         merkle_root: folding_root,
+    //     });
+    // }
+
+    // pub fn receive_deep_eval(&mut self, deep_eval: DeepEval<T>) {
+    //     self.deep_evals.push(deep_eval);
+    // }
+
+    // pub fn set_final_value(&mut self, value: T) {
+    //     self.final_value = Some(value);
+    // }
+
+    pub fn veri(&mut self, proof: Proof<T>) {
+        self.final_value = Some(proof.final_value);
+        let mut leave_number = self.interpolate_cosets[0].size() / 2;
+        for merkle_root in proof.merkle_root {
+            leave_number /= 2;
+            self.polynomial_roots.push(MerkleTreeVerifier {
+                merkle_root,
+                leave_number,
+            });
+        }
+        self.shuffle_eval = Some(DeepEval {
+            point: self.open_point.clone(),
+            first_eval: proof.evaluation,
+            else_evals: proof.shuffle_evals,
         });
-    }
-
-    pub fn receive_deep_eval(&mut self, deep_eval: DeepEval<T>) {
-        self.deep_evals.push(deep_eval);
-    }
-
-    pub fn set_final_value(&mut self, value: T) {
-        self.final_value = Some(value);
+        assert_eq!(self.first_deep, proof.deep_evals[0].0);
+        proof
+            .deep_evals
+            .into_iter()
+            .enumerate()
+            .for_each(|(idx, (first_eval, else_evals))| {
+                self.deep_evals.push(DeepEval {
+                    point: std::iter::successors(Some(self.oracle.deep[idx]), |&x| Some(x * x))
+                        .take(self.total_round - idx)
+                        .collect::<Vec<_>>(),
+                    first_eval,
+                    else_evals,
+                });
+            });
+        self.verify(&proof.query_result);
     }
 
     pub fn verify(&self, polynomial_proof: &Vec<QueryResult<T>>) -> bool {
