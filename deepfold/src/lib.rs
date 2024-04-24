@@ -69,6 +69,12 @@ pub struct Proof<T: Field> {
     shuffle_evals: Vec<T>
 }
 
+impl<T: Field> Proof<T> {
+    fn evaluation(&self) -> T {
+        self.shuffle_evals[0]
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::mem::size_of;

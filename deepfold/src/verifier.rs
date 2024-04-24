@@ -6,7 +6,7 @@ use util::{
     query_result::QueryResult,
 };
 
-use crate::DeepEval;
+use crate::{Commit, DeepEval};
 
 #[derive(Clone)]
 pub struct Verifier<T: Field> {
@@ -24,14 +24,14 @@ impl<T: Field> Verifier<T> {
     pub fn new(
         total_round: usize,
         coset: &Vec<Coset<T>>,
-        commit: [u8; MERKLE_ROOT_SIZE],
+        commit: Commit<T>,
         oracle: &RandomOracle<T>,
     ) -> Self {
         Verifier {
             total_round,
             interpolate_cosets: coset.clone(),
             oracle: oracle.clone(),
-            polynomial_roots: vec![MerkleTreeVerifier::new(coset[0].size() / 2, &commit)],
+            polynomial_roots: vec![MerkleTreeVerifier::new(coset[0].size() / 2, &commit.merkle_root)],
             final_value: None,
             shuffle_eval: None,
             deep_evals: vec![],

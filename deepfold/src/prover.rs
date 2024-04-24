@@ -140,4 +140,8 @@ impl<T: Field> Prover<T> {
         }
         res
     }
+
+    pub fn generate_proof(&mut self) {
+
+    }
 }
