@@ -1,4 +1,3 @@
-use util::merkle_tree::MERKLE_ROOT_SIZE;
 use util::random_oracle::RandomOracle;
 use util::{
     algebra::{coset::Coset, field::Field},

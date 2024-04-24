@@ -1,12 +1,11 @@
 use util::{
     algebra::{coset::Coset, field::Field, polynomial::MultilinearPolynomial},
     interpolation::InterpolateValue,
-    merkle_tree::MERKLE_ROOT_SIZE,
     query_result::QueryResult,
     random_oracle::RandomOracle,
 };
 
-use crate::{verifier::Verifier, Commit, DeepEval, Proof};
+use crate::{Commit, DeepEval, Proof};
 
 #[derive(Clone)]
 pub struct Prover<T: Field> {
