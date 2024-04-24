@@ -1,66 +1,11 @@
 use util::{
     algebra::{coset::Coset, field::Field, polynomial::MultilinearPolynomial},
     interpolation::InterpolateValue,
-    merkle_tree::MERKLE_ROOT_SIZE,
     query_result::QueryResult,
     random_oracle::RandomOracle,
 };
 
-use crate::verifier::Verifier;
-
-#[derive(Clone)]
-pub struct DeepEval<T: Field> {
-    point: Vec<T>,
-    first_eval: T,
-    else_evals: Vec<T>,
-}
-
-impl<T: Field> DeepEval<T> {
-    pub fn new(point: Vec<T>, poly_hypercube: Vec<T>) -> Self {
-        DeepEval {
-            point: point.clone(),
-            first_eval: Self::evaluatioin_at(point, poly_hypercube),
-            else_evals: vec![],
-        }
-    }
-
-    fn evaluatioin_at(point: Vec<T>, mut poly_hypercube: Vec<T>) -> T {
-        let mut len = poly_hypercube.len();
-        assert_eq!(len, 1 << point.len());
-        for v in point.into_iter() {
-            len >>= 1;
-            for i in 0..len {
-                poly_hypercube[i] *= T::from_int(1) - v;
-                let tmp = poly_hypercube[i + len] * v;
-                poly_hypercube[i] += tmp;
-            }
-        }
-        poly_hypercube[0]
-    }
-
-    pub fn append_else_eval(&mut self, poly_hypercube: Vec<T>) {
-        let mut point = self.point[self.else_evals.len()..].to_vec();
-        point[0] += T::from_int(1);
-        self.else_evals
-            .push(Self::evaluatioin_at(point, poly_hypercube));
-    }
-
-    pub fn verify(&self, challenges: &Vec<T>) -> T {
-        let (_, challenges) = challenges.split_at(challenges.len() - self.point.len());
-        let mut y_0 = self.first_eval;
-        assert_eq!(self.point.len(), self.else_evals.len());
-        for ((x, eval), challenge) in self
-            .point
-            .iter()
-            .zip(self.else_evals.iter())
-            .zip(challenges.into_iter())
-        {
-            let y_1 = eval.clone();
-            y_0 += (y_1 - y_0) * (challenge.clone() - x.clone());
-        }
-        y_0
-    }
-}
+use crate::{Commit, DeepEval, Proof};
 
 #[derive(Clone)]
 pub struct Prover<T: Field> {
@@ -81,41 +26,29 @@ impl<T: Field> Prover<T> {
         polynomial: MultilinearPolynomial<T>,
         oracle: &RandomOracle<T>,
     ) -> Self {
+        let point = std::iter::successors(Some(oracle.deep[0]), |&x| Some(x * x))
+            .take(total_round)
+            .collect::<Vec<_>>();
+        let hypercube_interpolation = polynomial.evaluate_hypercube();
         Prover {
             total_round,
             interpolate_cosets: interpolate_cosets.clone(),
             interpolations: vec![InterpolateValue::new(
                 interpolate_cosets[0].fft(polynomial.coefficients().clone()),
             )],
-            hypercube_interpolation: polynomial.evaluate_hypercube(),
-            deep_eval: vec![],
+            hypercube_interpolation: hypercube_interpolation.clone(),
+            deep_eval: vec![DeepEval::new(point.clone(), hypercube_interpolation)],
             shuffle_eval: None,
             oracle: oracle.clone(),
             final_value: None,
         }
     }
 
-    pub fn commit_polynomial(&mut self) -> [u8; MERKLE_ROOT_SIZE] {
-        let point = std::iter::successors(Some(self.oracle.deep[0]), |&x| Some(x * x))
-            .take(self.total_round)
-            .collect::<Vec<_>>();
-        self.deep_eval.push(DeepEval::new(
-            point.clone(),
-            self.hypercube_interpolation.clone(),
-        ));
-        self.interpolations[0].commit()
-    }
-
-    pub fn commit_foldings(&self, verifier: &mut Verifier<T>) {
-        for i in 1..self.total_round {
-            let interpolation = &self.interpolations[i];
-            verifier.receive_folding_root(interpolation.leave_num(), interpolation.commit());
+    pub fn commit_polynomial(&self) -> Commit<T> {
+        Commit {
+            merkle_root: self.interpolations[0].commit(),
+            deep: self.deep_eval[0].first_eval,
         }
-        verifier.receive_shuffle_eval(self.shuffle_eval.clone().unwrap());
-        for i in &self.deep_eval {
-            verifier.receive_deep_eval(i.clone());
-        }
-        verifier.set_final_value(self.final_value.unwrap());
     }
 
     fn evaluation_next_domain(&self, round: usize, challenge: T) -> Vec<T> {
@@ -188,5 +121,25 @@ impl<T: Field> Prover<T> {
             res.push(self.interpolations[i].query(&leaf_indices));
         }
         res
+    }
+
+    pub fn generate_proof(mut self, point: Vec<T>) -> Proof<T> {
+        self.prove(point);
+        let query_result = self.query();
+        Proof {
+            merkle_root: (1..self.total_round)
+                .into_iter()
+                .map(|x| self.interpolations[x].commit())
+                .collect(),
+            query_result,
+            deep_evals: self
+                .deep_eval
+                .iter()
+                .map(|x| (x.first_eval, x.else_evals.clone()))
+                .collect(),
+            shuffle_evals: self.shuffle_eval.as_ref().unwrap().else_evals.clone(),
+            final_value: self.final_value.unwrap(),
+            evaluation: self.shuffle_eval.as_ref().unwrap().first_eval,
+        }
     }
 }
