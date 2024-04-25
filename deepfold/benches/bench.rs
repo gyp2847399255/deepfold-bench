@@ -1,7 +1,7 @@
 extern crate criterion;
 use criterion::*;
 
-use basefold::{prover::Prover, verifier::Verifier};
+use deepfold::{prover::Prover, verifier::Verifier};
 use util::{
     algebra::{
         coset::Coset,

@@ -1,5 +1,22 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+use util::{
+    algebra::{
+        field::Field,
+        polynomial::{self, MultilinearPolynomial, Polynomial},
+    }
+};
+
+struct Dealer<T: Field> {
+    polynomial: MultilinearPolynomial<T>,
+    lines: Vec<Vec<(T, T)>>,
+}
+
+impl<T: Field> Dealer<T> {
+    pub fn new(polynomial: Polynomial<T>) -> Self {
+        Dealer {
+            polynomial: MultilinearPolynomial::new(polynomial.coefficients),
+            lines: vec![],
+        }
+    }
 }
 
 #[cfg(test)]
@@ -7,8 +24,5 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+    fn it_works() {}
 }

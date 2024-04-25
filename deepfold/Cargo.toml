@@ -1,5 +1,5 @@
 [package]
-name = "basefold"
+name = "deepfold"
 version = "0.1.0"
 edition = "2021"
 
