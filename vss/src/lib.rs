@@ -1,8 +1,6 @@
-use util::{
-    algebra::{
-        field::Field,
-        polynomial::{self, MultilinearPolynomial, Polynomial},
-    }
+use util::algebra::{
+    field::Field,
+    polynomial::{self, MultilinearPolynomial, Polynomial},
 };
 
 struct Dealer<T: Field> {
