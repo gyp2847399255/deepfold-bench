@@ -1,9 +1,5 @@
 use util::{
-    algebra::{
-        coset::Coset,
-        field::Field,
-        polynomial::{self, MultilinearPolynomial, Polynomial},
-    },
+    algebra::{coset::Coset, field::Field, polynomial::MultilinearPolynomial},
     random_oracle::RandomOracle,
 };
 
