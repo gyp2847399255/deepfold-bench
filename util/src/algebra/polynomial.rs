@@ -213,14 +213,13 @@ impl<T: Field> EqMultilinear<T> {
 
 #[cfg(test)]
 mod test {
-    use crate::algebra::field::mersenne61_ext::Mersenne61Ext;
+    use crate::algebra::field::{ft255::Ft255, mersenne61_ext::Mersenne61Ext};
 
-    use super::super::field::fp64::Fp64;
     use super::*;
 
     #[test]
     fn evaluation() {
-        let coset = Coset::new(32, Fp64::random_element());
+        let coset = Coset::new(32, Ft255::random_element());
         let all_elements = coset.all_elements();
         let poly = Polynomial::random_polynomial(32);
         let eval = poly.evaluation_over_coset(&coset);
@@ -229,7 +228,7 @@ mod test {
         }
         let poly = VanishingPolynomial::new(&coset);
         for i in coset.all_elements() {
-            assert_eq!(Fp64::from_int(0), poly.evaluation_at(i));
+            assert_eq!(Ft255::from_int(0), poly.evaluation_at(i));
         }
     }
 

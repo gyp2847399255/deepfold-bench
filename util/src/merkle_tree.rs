@@ -76,6 +76,20 @@ impl MerkleTreeVerifier {
     }
 }
 
+pub struct MerkleRoot;
+impl MerkleRoot {
+    pub fn get_root(
+        proof_bytes: Vec<u8>,
+        index: usize,
+        leaf: Vec<u8>,
+        total_leaves_count: usize
+    ) -> [u8; MERKLE_ROOT_SIZE] {
+        let proof = MerkleProof::<Blake3Algorithm>::try_from(proof_bytes).unwrap();
+        let leaf_hashes = vec![Blake3Algorithm::hash(&leaf)];
+        proof.root(&vec![index], &leaf_hashes, total_leaves_count).unwrap()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
