@@ -5,7 +5,7 @@ use super::field::Field;
 
 #[derive(Debug, Clone)]
 pub struct Polynomial<T: Field> {
-    coefficients: Vec<T>,
+    pub coefficients: Vec<T>,
 }
 
 impl<T: Field> Polynomial<T> {
