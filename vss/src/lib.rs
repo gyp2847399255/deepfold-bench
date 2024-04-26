@@ -7,7 +7,6 @@ use util::{
         polynomial::MultilinearPolynomial,
     },
     merkle_tree::{MerkleRoot, MerkleTreeProver},
-    random_oracle::RandomOracle,
 };
 
 struct Dealer<T: Field> {
@@ -20,10 +19,7 @@ struct Dealer<T: Field> {
 }
 
 impl<T: Field> Dealer<T> {
-    pub fn new(
-        polynomial: MultilinearPolynomial<T>,
-        coset: &Coset<T>,
-    ) -> Self {
+    pub fn new(polynomial: MultilinearPolynomial<T>, coset: &Coset<T>) -> Self {
         assert_eq!(coset.size(), 1 << (polynomial.variable_num() + 1));
         let sharing = coset.fft(polynomial.coefficients().clone());
         Dealer {
@@ -107,10 +103,7 @@ struct Party<T: Field> {
 
 impl<T: Field> Party<T> {
     pub fn new(point: T, index: usize) -> Self {
-        Party {
-            point,
-            index,
-        }
+        Party { point, index }
     }
 
     pub fn verify(&self, proof: Proof<T>) {
@@ -122,10 +115,7 @@ impl<T: Field> Party<T> {
             let r = proof.get_challenge(self.index, i);
             point *= point;
             if i == lines.len() - 1 {
-                assert_eq!(
-                    lines[i].0 * r + lines[i].1,
-                    proof.final_value
-                );
+                assert_eq!(lines[i].0 * r + lines[i].1, proof.final_value);
             } else {
                 assert_eq!(
                     lines[i].0 * r + lines[i].1,

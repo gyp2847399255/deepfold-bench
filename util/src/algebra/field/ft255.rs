@@ -40,10 +40,18 @@ impl Field for Ft255 {
     #[inline]
     fn from_hash(hash: [u8; crate::merkle_tree::MERKLE_ROOT_SIZE]) -> Self {
         Ft255([
-            (0..8).into_iter().fold(0, |acc, x| (acc << 8) + hash[x] as u64),
-            (8..16).into_iter().fold(0, |acc, x| (acc << 8) + hash[x] as u64),
-            (16..24).into_iter().fold(0, |acc, x| (acc << 8) + hash[x] as u64),
-            (24..32).into_iter().fold(0, |acc, x| (acc << 8) + hash[x] as u64),
+            (0..8)
+                .into_iter()
+                .fold(0, |acc, x| (acc << 8) + hash[x] as u64),
+            (8..16)
+                .into_iter()
+                .fold(0, |acc, x| (acc << 8) + hash[x] as u64),
+            (16..24)
+                .into_iter()
+                .fold(0, |acc, x| (acc << 8) + hash[x] as u64),
+            (24..32)
+                .into_iter()
+                .fold(0, |acc, x| (acc << 8) + hash[x] as u64),
         ])
     }
 

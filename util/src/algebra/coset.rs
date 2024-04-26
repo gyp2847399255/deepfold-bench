@@ -204,7 +204,7 @@ mod tests {
 
     #[test]
     fn fft_and_ifft() {
-        let mut a= vec![];
+        let mut a = vec![];
         let mut b = vec![];
         for _i in 0..16 {
             a.push(Ft255::random_element());
