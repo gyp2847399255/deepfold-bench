@@ -198,27 +198,26 @@ impl<T: Field> Coset<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::algebra::field::mersenne61_ext::Mersenne61Ext;
+    use crate::algebra::field::{ft255::Ft255, mersenne61_ext::Mersenne61Ext};
 
-    use super::super::field::fp64::Fp64;
     use super::*;
 
     #[test]
     fn fft_and_ifft() {
-        let mut a: Vec<Fp64> = vec![];
-        let mut b: Vec<Fp64> = vec![];
+        let mut a = vec![];
+        let mut b = vec![];
         for _i in 0..16 {
-            a.push(Fp64::random_element());
-            b.push(Fp64::random_element());
+            a.push(Ft255::random_element());
+            b.push(Ft255::random_element());
         }
         let fft_a_times_b = Coset::mult(&Polynomial::new(a.clone()), &Polynomial::new(b.clone()));
         for _i in 16..32 {
-            a.push(Fp64::from_int(0));
-            b.push(Fp64::from_int(0));
+            a.push(Ft255::from_int(0));
+            b.push(Ft255::from_int(0));
         }
-        let mut a_times_b: Vec<Fp64> = vec![];
+        let mut a_times_b = vec![];
         for _i in 0..32 {
-            a_times_b.push(Fp64::from_int(0));
+            a_times_b.push(Ft255::from_int(0));
         }
         for i in 0..16usize {
             for j in 0..16usize {
@@ -229,7 +228,7 @@ mod tests {
             a_times_b.pop();
         }
         assert_eq!(fft_a_times_b.coefficients().clone(), a_times_b);
-        let coset = Coset::new(32, Fp64::random_element());
+        let coset = Coset::new(32, Ft255::random_element());
         let b = coset.fft(a.clone());
         let c = coset.ifft(b);
         assert_eq!(a, c);
@@ -237,7 +236,7 @@ mod tests {
 
     #[test]
     fn all_elements() {
-        let r = Fp64::random_element();
+        let r = Ft255::random_element();
         let coset = Coset::new(32, r);
         let elements = coset.all_elements();
         assert_eq!(elements[0], r);

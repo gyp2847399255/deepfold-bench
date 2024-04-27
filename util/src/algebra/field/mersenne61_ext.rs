@@ -135,6 +135,18 @@ impl Field for Mersenne61Ext {
     }
 
     #[inline]
+    fn from_hash(hash: [u8; crate::merkle_tree::MERKLE_ROOT_SIZE]) -> Self {
+        Mersenne61Ext {
+            real: (0..7)
+                .into_iter()
+                .fold(0, |acc, x| (acc << 8) + hash[x] as u64),
+            image: (8..15)
+                .into_iter()
+                .fold(0, |acc, x| (acc << 8) + hash[x] as u64),
+        }
+    }
+
+    #[inline]
     fn is_zero(&self) -> bool {
         self.real == 0 && self.image == 0
     }

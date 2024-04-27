@@ -1,4 +1,5 @@
-pub mod fp64;
+use crate::merkle_tree::MERKLE_ROOT_SIZE;
+
 pub mod ft255;
 pub mod mersenne61_ext;
 
@@ -30,6 +31,7 @@ pub trait Field:
     fn inverse(&self) -> Self;
     fn is_zero(&self) -> bool;
     fn to_bytes(&self) -> Vec<u8>;
+    fn from_hash(hash: [u8; MERKLE_ROOT_SIZE]) -> Self;
 
     fn get_generator(order: usize) -> Self {
         if (order & (order - 1)) != 0 || order > (1 << Self::LOG_ORDER) {
