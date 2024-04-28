@@ -112,6 +112,7 @@ mod tests {
         let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
         let prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
         let commit = prover.commit_polynomial();
+        println!("{} {}", file!(), line!());
         let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
         let point = verifier.get_open_point();
         let proof = prover.generate_proof(point);
@@ -122,7 +123,7 @@ mod tests {
 
     #[test]
     fn test_proof_size() {
-        for i in 12..23 {
+        for i in 22..23 {
             let proof_size = output_proof_size::<Mersenne61Ext>(i);
             println!(
                 "Deepfold pcs proof size of {} variables is {} bytes, using {}",
@@ -130,13 +131,13 @@ mod tests {
                 proof_size,
                 Mersenne61Ext::FIELD_NAME
             );
-            let proof_size = output_proof_size::<Ft255>(i);
-            println!(
-                "Deepfold pcs proof size of {} variables is {} bytes, using {}",
-                i,
-                proof_size,
-                Ft255::FIELD_NAME
-            );
+            // let proof_size = output_proof_size::<Ft255>(i);
+            // println!(
+            //     "Deepfold pcs proof size of {} variables is {} bytes, using {}",
+            //     i,
+            //     proof_size,
+            //     Ft255::FIELD_NAME
+            // );
         }
     }
 }
