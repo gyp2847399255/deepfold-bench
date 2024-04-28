@@ -25,7 +25,7 @@ fn commit<T: Field>(criterion: &mut Criterion, variable_num: usize) {
     );
 
     criterion.bench_function(
-        &format!("basefold {} commit {}", T::FIELD_NAME, variable_num),
+        &format!("deepfold {} commit {}", T::FIELD_NAME, variable_num),
         move |b| {
             b.iter_batched(
                 || polynomial.clone(),
@@ -40,7 +40,7 @@ fn commit<T: Field>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_commit(c: &mut Criterion) {
-    for i in 15..16 {
+    for i in 12..23 {
         commit::<Mersenne61Ext>(c, i);
         commit::<Ft255>(c, i);
     }
@@ -63,7 +63,7 @@ fn open<T: Field>(criterion: &mut Criterion, variable_num: usize) {
     let point = verifier.get_open_point();
 
     criterion.bench_function(
-        &format!("basefold {} open {}", T::FIELD_NAME, variable_num),
+        &format!("deepfold {} open {}", T::FIELD_NAME, variable_num),
         move |b| {
             b.iter_batched(
                 || (prover.clone(), point.clone()),
@@ -77,7 +77,7 @@ fn open<T: Field>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_open(c: &mut Criterion) {
-    for i in 15..16 {
+    for i in 12..23 {
         open::<Mersenne61Ext>(c, i);
     }
 }
@@ -100,7 +100,7 @@ fn verify<T: Field>(criterion: &mut Criterion, variable_num: usize) {
     let proof = prover.generate_proof(point);
 
     criterion.bench_function(
-        &format!("basefold {} verify {}", T::FIELD_NAME, variable_num),
+        &format!("deepfold {} verify {}", T::FIELD_NAME, variable_num),
         move |b| {
             b.iter_batched(
                 || (verifier.clone(), proof.clone()),
@@ -114,8 +114,9 @@ fn verify<T: Field>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_verify(c: &mut Criterion) {
-    for i in 15..16 {
+    for i in 12..23 {
         verify::<Mersenne61Ext>(c, i);
+        verify::<Ft255>(c, i);
     }
 }
 

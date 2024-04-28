@@ -1,3 +1,5 @@
+use std::mem::size_of;
+
 use util::{algebra::field::Field, merkle_tree::MERKLE_ROOT_SIZE, query_result::QueryResult};
 
 pub mod prover;
@@ -72,6 +74,20 @@ pub struct Proof<T: Field> {
     final_value: T,
 }
 
+impl<T: Field> Proof<T> {
+    fn size(&self) -> usize {
+        self.merkle_root.len() * MERKLE_ROOT_SIZE
+            + self
+                .query_result
+                .iter()
+                .fold(0, |acc, x| acc + x.proof_size())
+            + (self.deep_evals.iter().fold(0, |acc, x| acc + x.1.len())
+                + self.shuffle_evals.len()
+                + 2)
+                * size_of::<T>()
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -79,19 +95,17 @@ mod tests {
     use util::{
         algebra::{
             coset::Coset,
-            field::{mersenne61_ext::Mersenne61Ext, Field},
+            field::{ft255::Ft255, mersenne61_ext::Mersenne61Ext, Field},
             polynomial::MultilinearPolynomial,
         },
         random_oracle::RandomOracle,
     };
     use util::{CODE_RATE, SECURITY_BITS};
 
-    fn output_proof_size(variable_num: usize) -> usize {
+    fn output_proof_size<T: Field>(variable_num: usize) -> usize {
         let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
-        let mut interpolate_cosets = vec![Coset::new(
-            1 << (variable_num + CODE_RATE),
-            Mersenne61Ext::from_int(1),
-        )];
+        let mut interpolate_cosets =
+            vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
         for i in 1..variable_num {
             interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
         }
@@ -101,19 +115,27 @@ mod tests {
         let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
         let point = verifier.get_open_point();
         let proof = prover.generate_proof(point);
+        let size = proof.size();
         assert!(verifier.verify(proof));
-        0
-        // proof.iter().map(|x| x.proof_size()).sum::<usize>()
-        //     + variable_num * (MERKLE_ROOT_SIZE + size_of::<Mersenne61Ext>() * 3)
+        size
     }
 
     #[test]
     fn test_proof_size() {
-        for i in 10..11 {
-            let proof_size = output_proof_size(i);
+        for i in 12..23 {
+            let proof_size = output_proof_size::<Mersenne61Ext>(i);
             println!(
-                "Basefold pcs proof size of {} variables is {} bytes",
-                i, proof_size
+                "Deepfold pcs proof size of {} variables is {} bytes, using {}",
+                i,
+                proof_size,
+                Mersenne61Ext::FIELD_NAME
+            );
+            let proof_size = output_proof_size::<Ft255>(i);
+            println!(
+                "Deepfold pcs proof size of {} variables is {} bytes, using {}",
+                i,
+                proof_size,
+                Ft255::FIELD_NAME
             );
         }
     }
