@@ -8,18 +8,29 @@ use crate::{
 #[derive(Clone)]
 pub struct InterpolateValue<T: Field> {
     pub value: Vec<T>,
+    leaf_size: usize,
     merkle_tree: MerkleTreeProver,
 }
 
 impl<T: Field> InterpolateValue<T> {
-    pub fn new(value: Vec<T>) -> Self {
-        let len = value.len() / 2;
+    pub fn new(value: Vec<T>, leaf_size: usize) -> Self {
+        let len = value.len() / leaf_size;
         let merkle_tree = MerkleTreeProver::new(
             (0..len)
-                .map(|i| as_bytes_vec(&[value[i], value[i + len]]))
+                .map(|i| {
+                    as_bytes_vec(
+                        &(0..leaf_size)
+                            .map(|j| value[i + len * j])
+                            .collect::<Vec<_>>(),
+                    )
+                })
                 .collect(),
         );
-        Self { value, merkle_tree }
+        Self {
+            value,
+            leaf_size,
+            merkle_tree,
+        }
     }
 
     pub fn leave_num(&self) -> usize {
@@ -32,9 +43,14 @@ impl<T: Field> InterpolateValue<T> {
 
     pub fn query(&self, leaf_indices: &Vec<usize>) -> QueryResult<T> {
         let len = self.merkle_tree.leave_num();
+        assert_eq!(len * self.leaf_size, self.value.len());
         let proof_values = leaf_indices
             .iter()
-            .flat_map(|j| [(*j, self.value[*j]), (*j + len, self.value[*j + len])])
+            .flat_map(|j| {
+                (0..self.leaf_size)
+                    .map(|i| (j.clone() + len * i, self.value[j.clone() + len * i]))
+                    .collect::<Vec<_>>()
+            })
             .collect();
         let proof_bytes = self.merkle_tree.open(&leaf_indices);
         QueryResult {

@@ -35,6 +35,7 @@ impl<T: Field> Prover<T> {
             interpolate_cosets: interpolate_cosets.clone(),
             interpolations: vec![InterpolateValue::new(
                 interpolate_cosets[0].fft(polynomial.coefficients().clone()),
+                2,
             )],
             hypercube_interpolation: hypercube_interpolation.clone(),
             deep_eval: vec![DeepEval::new(point.clone(), hypercube_interpolation)],
@@ -102,7 +103,7 @@ impl<T: Field> Prover<T> {
                     DeepEval::new(deep_point.clone(), hypercube_interpolation.clone())
                 });
                 self.interpolations
-                    .push(InterpolateValue::new(next_evalutation));
+                    .push(InterpolateValue::new(next_evalutation, 2));
             } else {
                 self.final_value = Some(next_evalutation[0]);
             }

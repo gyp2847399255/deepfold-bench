@@ -13,18 +13,23 @@ impl<T: Field> QueryResult<T> {
     pub fn verify_merkle_tree(
         &self,
         leaf_indices: &Vec<usize>,
+        leaf_size: usize,
         merkle_verifier: &MerkleTreeVerifier,
     ) -> bool {
+        let len = merkle_verifier.leave_number;
         let leaves: Vec<Vec<u8>> = leaf_indices
             .iter()
             .map(|x| {
-                as_bytes_vec(&[
-                    self.proof_values.get(x).unwrap().clone(),
-                    self.proof_values
-                        .get(&(x + merkle_verifier.leave_number))
-                        .unwrap()
-                        .clone(),
-                ])
+                as_bytes_vec(
+                    &(0..leaf_size)
+                        .map(|j| {
+                            self.proof_values
+                                .get(&(x.clone() + j * len))
+                                .unwrap()
+                                .clone()
+                        })
+                        .collect::<Vec<_>>(),
+                )
             })
             .collect();
         let res = merkle_verifier.verify(self.proof_bytes.clone(), leaf_indices, &leaves);

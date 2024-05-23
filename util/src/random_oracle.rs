@@ -7,6 +7,7 @@ pub struct RandomOracle<T: Field> {
     pub rlc: T,
     pub folding_challenges: Vec<T>,
     pub deep: Vec<T>,
+    pub alpha: Vec<T>,
     pub query_list: Vec<usize>,
 }
 
@@ -20,6 +21,10 @@ impl<T: Field> RandomOracle<T> {
                 .map(|_| T::random_element())
                 .collect(),
             deep: (0..total_round)
+                .into_iter()
+                .map(|_| T::random_element())
+                .collect(),
+            alpha: (0..total_round)
                 .into_iter()
                 .map(|_| T::random_element())
                 .collect(),

@@ -97,6 +97,20 @@ impl<T: Field> MultilinearPolynomial<T> {
         &self.coefficients
     }
 
+    pub fn evaluate_from_hypercube(point: Vec<T>, mut poly_hypercube: Vec<T>) -> T {
+        let mut len = poly_hypercube.len();
+        assert_eq!(len, 1 << point.len());
+        for v in point.into_iter() {
+            len >>= 1;
+            for i in 0..len {
+                poly_hypercube[i] *= T::from_int(1) - v;
+                let tmp = poly_hypercube[i + len] * v;
+                poly_hypercube[i] += tmp;
+            }
+        }
+        poly_hypercube[0]
+    }
+
     pub fn evaluate_hypercube(&self) -> Vec<T> {
         let log_n = self.variable_num();
         let n = self.coefficients.len();
@@ -128,6 +142,17 @@ impl<T: Field> MultilinearPolynomial<T> {
     pub fn folding(&self, parameter: T) -> Self {
         let coefficients = Self::folding_vector(&self.coefficients, parameter);
         MultilinearPolynomial { coefficients }
+    }
+
+    pub fn fold_self(&mut self, parameter: T) {
+        self.coefficients = Self::folding_vector(&self.coefficients, parameter);
+    }
+
+    pub fn add_mult(&mut self, poly: &MultilinearPolynomial<T>, k: T) {
+        assert_eq!(self.coefficients.len(), poly.coefficients.len());
+        for (i, j) in self.coefficients.iter_mut().zip(poly.coefficients.iter()) {
+            *i += k * j.clone();
+        }
     }
 
     fn folding_vector(v: &Vec<T>, parameter: T) -> Vec<T> {
