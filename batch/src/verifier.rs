@@ -2,7 +2,6 @@ use util::random_oracle::RandomOracle;
 use util::{
     algebra::{coset::Coset, field::Field},
     merkle_tree::MerkleTreeVerifier,
-    query_result::QueryResult,
 };
 
 use crate::{Commit, DeepEval, Proof};
@@ -127,7 +126,6 @@ impl<T: Field> Verifier<T> {
                         self.final_value.unwrap()
                     );
                 }
-                println!("{} {}", file!(), line!());
             }
             let folding_value = if i == 0 {
                 &function_proof[0].proof_values
