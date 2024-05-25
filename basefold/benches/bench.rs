@@ -1,7 +1,7 @@
 extern crate criterion;
 use criterion::*;
 
-use deepfold::{prover::Prover, verifier::Verifier};
+use basefold::{prover::Prover, verifier::Verifier};
 use util::{
     algebra::{
         coset::Coset,
@@ -25,7 +25,7 @@ fn commit<T: Field>(criterion: &mut Criterion, variable_num: usize) {
     );
 
     criterion.bench_function(
-        &format!("deepfold {} commit {}", T::FIELD_NAME, variable_num),
+        &format!("basefold {} commit {}", T::FIELD_NAME, variable_num),
         move |b| {
             b.iter_batched(
                 || polynomial.clone(),
@@ -40,7 +40,7 @@ fn commit<T: Field>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_commit(c: &mut Criterion) {
-    for i in 1..23 {
+    for i in 10..23 {
         commit::<Mersenne61Ext>(c, i);
         // commit::<Ft255>(c, i);
     }
@@ -63,12 +63,15 @@ fn open<T: Field>(criterion: &mut Criterion, variable_num: usize) {
     let point = verifier.get_open_point();
 
     criterion.bench_function(
-        &format!("deepfold {} open {}", T::FIELD_NAME, variable_num),
+        &format!("basefold {} open {}", T::FIELD_NAME, variable_num),
         move |b| {
             b.iter_batched(
-                || (prover.clone(), point.clone()),
-                |(p, x)| {
-                    let _proof = p.generate_proof(x);
+                || (prover.clone(), verifier.clone()),
+                |(mut p, mut v)| {
+                    p.send_evaluation(&mut v, &point);
+                    p.prove(&point);
+                    p.commit_foldings(&mut v);
+                    let _ = p.query();
                 },
                 BatchSize::SmallInput,
             )
@@ -77,8 +80,9 @@ fn open<T: Field>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_open(c: &mut Criterion) {
-    for i in 1..23 {
+    for i in 10..23 {
         open::<Mersenne61Ext>(c, i);
+        // open::<Ft255>(c, i);
     }
 }
 
@@ -93,28 +97,27 @@ fn verify<T: Field>(criterion: &mut Criterion, variable_num: usize) {
         (SECURITY_BITS as f32 / (2.0 / (1.0 + 0.5_f32.powi(CODE_RATE as i32))).log2()).ceil()
             as usize,
     );
-    let prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
+    let mut prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
     let commit = prover.commit_polynomial();
-    let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
+    let mut verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
     let point = verifier.get_open_point();
-    let proof = prover.generate_proof(point);
+    prover.send_evaluation(&mut verifier, &point);
+    prover.prove(&point);
+    prover.commit_foldings(&mut verifier);
+    let proof = prover.query();
 
     criterion.bench_function(
-        &format!("deepfold {} verify {}", T::FIELD_NAME, variable_num),
+        &format!("basefold {} verify {}", T::FIELD_NAME, variable_num),
         move |b| {
-            b.iter_batched(
-                || (verifier.clone(), proof.clone()),
-                |(v, pi)| {
-                    assert!(v.verify(pi));
-                },
-                BatchSize::SmallInput,
-            )
+            b.iter(|| {
+                assert!(verifier.verify(&proof));
+            })
         },
     );
 }
 
 fn bench_verify(c: &mut Criterion) {
-    for i in 1..23 {
+    for i in 10..23 {
         verify::<Mersenne61Ext>(c, i);
         // verify::<Ft255>(c, i);
     }

@@ -3,5 +3,8 @@ members = [
     "util",
     "deepfold", 
     "vss",
-    "batch"
+    "batch",
+    "basefold",
+    "virgo",
+    "polyfrim"
 ]

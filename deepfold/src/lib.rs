@@ -90,7 +90,6 @@ impl<T: Field> Proof<T> {
 
 #[cfg(test)]
 mod tests {
-
     use crate::{prover::Prover, verifier::Verifier};
     use util::{
         algebra::{
