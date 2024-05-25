@@ -77,7 +77,7 @@ pub struct Proof<T: Field> {
     query_result: (Vec<QueryResult<T>>, Vec<QueryResult<T>>),
     deep_evals: Vec<(T, Vec<T>)>,
     shuffle_evals: Vec<T>,
-    evals: Vec<Vec<T>>,
+    out_evals: Vec<Vec<T>>,
     evaluation: T,
     final_value: T,
 }

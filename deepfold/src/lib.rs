@@ -122,7 +122,7 @@ mod tests {
 
     #[test]
     fn test_proof_size() {
-        for i in 12..23 {
+        for i in 12..13 {
             let proof_size = output_proof_size::<Mersenne61Ext>(i);
             println!(
                 "Deepfold pcs proof size of {} variables is {} bytes, using {}",

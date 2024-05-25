@@ -186,7 +186,7 @@ impl<T: Field> Prover<T> {
             shuffle_evals: self.shuffle_eval.as_ref().unwrap().else_evals.clone(),
             final_value: self.final_value.unwrap(),
             evaluation: self.shuffle_eval.as_ref().unwrap().first_eval,
-            evals: self.evals.clone(),
+            out_evals: self.evals.clone(),
         }
     }
 }

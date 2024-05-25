@@ -117,12 +117,12 @@ impl<T: Field> Verifier<T> {
                     self.shuffle_eval
                         .as_ref()
                         .unwrap()
-                        .verify(&challenges, &proof.evals[0]),
+                        .verify(&challenges, &proof.out_evals[0]),
                     self.final_value.unwrap()
                 );
                 for (j, de) in self.deep_evals.iter().enumerate() {
                     assert_eq!(
-                        de.verify(&challenges, &proof.evals[j + 1]),
+                        de.verify(&challenges, &proof.out_evals[j + 1]),
                         self.final_value.unwrap()
                     );
                 }
