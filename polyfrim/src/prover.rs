@@ -6,11 +6,7 @@ use util::merkle_tree::MERKLE_ROOT_SIZE;
 use util::query_result::QueryResult;
 // use util::query_result::QueryResult;
 use util::{
-    algebra::{
-        coset::Coset,
-        field::{as_bytes_vec, Field},
-    },
-    merkle_tree::MerkleTreeProver,
+    algebra::{coset::Coset, field::Field},
     random_oracle::RandomOracle,
 };
 

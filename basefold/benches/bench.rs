@@ -5,7 +5,7 @@ use basefold::{prover::Prover, verifier::Verifier};
 use util::{
     algebra::{
         coset::Coset,
-        field::{ft255::Ft255, mersenne61_ext::Mersenne61Ext, Field},
+        field::{mersenne61_ext::Mersenne61Ext, Field},
         polynomial::MultilinearPolynomial,
     },
     random_oracle::RandomOracle,
