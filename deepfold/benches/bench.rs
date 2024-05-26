@@ -18,11 +18,7 @@ fn commit<T: Field>(criterion: &mut Criterion, variable_num: usize) {
     for i in 1..variable_num {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
-    let oracle = RandomOracle::new(
-        variable_num,
-        (SECURITY_BITS as f32 / (2.0 / (1.0 + 0.5_f32.powi(CODE_RATE as i32))).log2()).ceil()
-            as usize,
-    );
+    let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
 
     criterion.bench_function(
         &format!("deepfold {} commit {}", T::FIELD_NAME, variable_num),
@@ -42,7 +38,6 @@ fn commit<T: Field>(criterion: &mut Criterion, variable_num: usize) {
 fn bench_commit(c: &mut Criterion) {
     for i in 1..23 {
         commit::<Mersenne61Ext>(c, i);
-        // commit::<Ft255>(c, i);
     }
 }
 
@@ -52,11 +47,7 @@ fn open<T: Field>(criterion: &mut Criterion, variable_num: usize) {
     for i in 1..variable_num {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
-    let oracle = RandomOracle::new(
-        variable_num,
-        (SECURITY_BITS as f32 / (2.0 / (1.0 + 0.5_f32.powi(CODE_RATE as i32))).log2()).ceil()
-            as usize,
-    );
+    let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
     let prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
     let commit = prover.commit_polynomial();
     let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
@@ -88,11 +79,7 @@ fn verify<T: Field>(criterion: &mut Criterion, variable_num: usize) {
     for i in 1..variable_num {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
-    let oracle = RandomOracle::new(
-        variable_num,
-        (SECURITY_BITS as f32 / (2.0 / (1.0 + 0.5_f32.powi(CODE_RATE as i32))).log2()).ceil()
-            as usize,
-    );
+    let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
     let prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
     let commit = prover.commit_polynomial();
     let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
@@ -116,7 +103,6 @@ fn verify<T: Field>(criterion: &mut Criterion, variable_num: usize) {
 fn bench_verify(c: &mut Criterion) {
     for i in 1..23 {
         verify::<Mersenne61Ext>(c, i);
-        // verify::<Ft255>(c, i);
     }
 }
 
