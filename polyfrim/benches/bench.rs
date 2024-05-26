@@ -23,7 +23,7 @@ fn commit(criterion: &mut Criterion, variable_num: usize, terminate_round: usize
     }
     let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
 
-    criterion.bench_function(&format!("commit {}", variable_num), move |b| {
+    criterion.bench_function(&format!("polyfrim commit {}", variable_num), move |b| {
         b.iter_batched(
             || polynomial.clone(),
             |p| {
@@ -72,7 +72,7 @@ fn open(criterion: &mut Criterion, variable_num: usize, terminate_round: usize) 
     );
     let open_point = verifier.get_open_point();
 
-    criterion.bench_function(&format!("open {}", variable_num), move |b| {
+    criterion.bench_function(&format!("polyfrim open {}", variable_num), move |b| {
         b.iter_batched(
             || prover.clone(),
             |mut p| {
@@ -122,7 +122,7 @@ fn verify(criterion: &mut Criterion, variable_num: usize, terminate_round: usize
     prover.prove();
     prover.commit_foldings(&mut verifier);
     let (folding_proof, function_proof) = prover.query();
-    criterion.bench_function(&format!("verify {}", variable_num), move |b| {
+    criterion.bench_function(&format!("polyfrim verify {}", variable_num), move |b| {
         b.iter(|| {
             verifier.verify(&folding_proof, &function_proof);
         })

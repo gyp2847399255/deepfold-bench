@@ -20,19 +20,16 @@ fn commit<T: Field>(criterion: &mut Criterion, variable_num: usize) {
     }
     let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
 
-    criterion.bench_function(
-        &format!("deepfold {} commit {}", T::FIELD_NAME, variable_num),
-        move |b| {
-            b.iter_batched(
-                || polynomial.clone(),
-                |p| {
-                    let prover = Prover::new(variable_num, &interpolate_cosets, p, &oracle);
-                    let _commit = prover.commit_polynomial();
-                },
-                BatchSize::SmallInput,
-            )
-        },
-    );
+    criterion.bench_function(&format!("deepfold commit {:02}", variable_num), move |b| {
+        b.iter_batched(
+            || polynomial.clone(),
+            |p| {
+                let prover = Prover::new(variable_num, &interpolate_cosets, p, &oracle);
+                let _commit = prover.commit_polynomial();
+            },
+            BatchSize::SmallInput,
+        )
+    });
 }
 
 fn bench_commit(c: &mut Criterion) {
@@ -53,18 +50,15 @@ fn open<T: Field>(criterion: &mut Criterion, variable_num: usize) {
     let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
     let point = verifier.get_open_point();
 
-    criterion.bench_function(
-        &format!("deepfold {} open {}", T::FIELD_NAME, variable_num),
-        move |b| {
-            b.iter_batched(
-                || (prover.clone(), point.clone()),
-                |(p, x)| {
-                    let _proof = p.generate_proof(x);
-                },
-                BatchSize::SmallInput,
-            )
-        },
-    );
+    criterion.bench_function(&format!("deepfold open {:02}", variable_num), move |b| {
+        b.iter_batched(
+            || (prover.clone(), point.clone()),
+            |(p, x)| {
+                let _proof = p.generate_proof(x);
+            },
+            BatchSize::SmallInput,
+        )
+    });
 }
 
 fn bench_open(c: &mut Criterion) {
@@ -86,18 +80,15 @@ fn verify<T: Field>(criterion: &mut Criterion, variable_num: usize) {
     let point = verifier.get_open_point();
     let proof = prover.generate_proof(point);
 
-    criterion.bench_function(
-        &format!("deepfold {} verify {}", T::FIELD_NAME, variable_num),
-        move |b| {
-            b.iter_batched(
-                || (verifier.clone(), proof.clone()),
-                |(v, pi)| {
-                    assert!(v.verify(pi));
-                },
-                BatchSize::SmallInput,
-            )
-        },
-    );
+    criterion.bench_function(&format!("deepfold verify {:02}", variable_num), move |b| {
+        b.iter_batched(
+            || (verifier.clone(), proof.clone()),
+            |(v, pi)| {
+                assert!(v.verify(pi));
+            },
+            BatchSize::SmallInput,
+        )
+    });
 }
 
 fn bench_verify(c: &mut Criterion) {
