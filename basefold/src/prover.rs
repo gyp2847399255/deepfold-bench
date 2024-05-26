@@ -35,7 +35,8 @@ impl<T: Field> Prover<T> {
             total_round,
             interpolate_cosets: interpolate_cosets.clone(),
             interpolations: vec![InterpolateValue::new(
-                interpolate_cosets[0].fft(polynomial.coefficients().clone()),2
+                interpolate_cosets[0].fft(polynomial.coefficients().clone()),
+                2,
             )],
             hypercube_interpolation: polynomial.evaluate_hypercube(),
             polynomial,

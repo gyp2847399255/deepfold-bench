@@ -14,7 +14,6 @@ use util::{
     random_oracle::RandomOracle,
 };
 
-
 #[derive(Clone)]
 pub struct One2ManyProver<T: Field> {
     total_round: usize,
@@ -74,7 +73,8 @@ impl<T: Field> One2ManyProver<T> {
                 &self.interpolate_cosets[round],
             );
             if round < self.total_round - 1 {
-                self.functions.push(InterpolateValue::new(next_evaluation, 2));
+                self.functions
+                    .push(InterpolateValue::new(next_evaluation, 2));
             } else {
                 let mut coefficients = self.interpolate_cosets[round + 1].ifft(next_evaluation);
                 coefficients.truncate(1 << (self.variable_num - self.total_round));
@@ -128,7 +128,8 @@ impl<T: Field> One2ManyProver<T> {
             let challenge = self.oracle.folding_challenges[i];
             if i < self.total_round - 1 {
                 let next_evalutation = self.evaluation_next_domain(i, challenge);
-                self.foldings.push(InterpolateValue::new(next_evalutation, 2));
+                self.foldings
+                    .push(InterpolateValue::new(next_evalutation, 2));
             } else {
                 let next_evalutation = self.evaluation_next_domain(i, challenge);
                 let coefficients = self.interpolate_cosets[i + 1].ifft(next_evalutation);

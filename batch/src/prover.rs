@@ -1,7 +1,7 @@
 use util::{
     algebra::{coset::Coset, field::Field, polynomial::MultilinearPolynomial},
     interpolation::InterpolateValue,
-    query_result::{QueryResult},
+    query_result::QueryResult,
     random_oracle::RandomOracle,
 };
 

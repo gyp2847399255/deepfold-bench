@@ -90,8 +90,14 @@ impl<T: Field> Proof<T> {
                 .0
                 .iter()
                 .fold(0, |acc, x| acc + x.proof_size())
+            + self
+                .query_result
+                .1
+                .iter()
+                .fold(0, |acc, x| acc + x.proof_size())
             + (self.deep_evals.iter().fold(0, |acc, x| acc + x.1.len())
                 + self.shuffle_evals.len()
+                + self.out_evals.iter().fold(0, |acc, x| acc + x.len())
                 + 2)
                 * size_of::<T>()
     }
@@ -101,10 +107,11 @@ impl<T: Field> Proof<T> {
 mod tests {
 
     use crate::{prover::Prover, verifier::Verifier};
+    use csv::Writer;
     use util::{
         algebra::{
             coset::Coset,
-            field::{ft255::Ft255, mersenne61_ext::Mersenne61Ext, Field},
+            field::{mersenne61_ext::Mersenne61Ext, Field},
             polynomial::MultilinearPolynomial,
         },
         random_oracle::RandomOracle,
@@ -134,21 +141,12 @@ mod tests {
 
     #[test]
     fn test_proof_size() {
-        for i in 12..13 {
+        let mut wtr = Writer::from_path("batch.csv").unwrap();
+        let range = 10..23;
+        for i in range.clone() {
             let proof_size = output_proof_size::<Mersenne61Ext>(i);
-            println!(
-                "Deepfold pcs proof size of {} variables is {} bytes, using {}",
-                i,
-                proof_size,
-                Mersenne61Ext::FIELD_NAME
-            );
-            let proof_size = output_proof_size::<Ft255>(i);
-            println!(
-                "Deepfold pcs proof size of {} variables is {} bytes, using {}",
-                i,
-                proof_size,
-                Ft255::FIELD_NAME
-            );
+            wtr.write_record(&[i.to_string(), proof_size.to_string()])
+                .unwrap();
         }
     }
 }

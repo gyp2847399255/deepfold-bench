@@ -105,10 +105,17 @@ impl<T: Field> FriVerifier<T> {
 
             if i == 0 {
                 assert!(function_proofs[0].verify_merkle_tree(&leaf_indices, 2, &self.u_root));
-                assert!(function_proofs[1]
-                    .verify_merkle_tree(&leaf_indices, 2, &self.h_root.as_ref().unwrap()));
+                assert!(function_proofs[1].verify_merkle_tree(
+                    &leaf_indices,
+                    2,
+                    &self.h_root.as_ref().unwrap()
+                ));
             } else {
-                folding_proofs[i - 1].verify_merkle_tree(&leaf_indices, 2, &self.folding_root[i - 1]);
+                folding_proofs[i - 1].verify_merkle_tree(
+                    &leaf_indices,
+                    2,
+                    &self.folding_root[i - 1],
+                );
             }
 
             let challenge = self.oracle.folding_challenges[i];

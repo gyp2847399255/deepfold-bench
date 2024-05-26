@@ -4,6 +4,7 @@ pub mod verifier;
 #[cfg(test)]
 mod tests {
     use crate::{prover::FriProver, verifier::FriVerifier};
+    use csv::Writer;
     use std::mem::size_of;
     use util::{
         algebra::{
@@ -59,12 +60,12 @@ mod tests {
 
     #[test]
     fn test_virgo_proof_size() {
-        for i in 10..23 {
+        let mut wtr = Writer::from_path("virgo.csv").unwrap();
+        let range = 10..23;
+        for i in range.clone() {
             let proof_size = output_proof_size(i);
-            println!(
-                "virgo pcs proof size of {} variables is {} bytes",
-                i, proof_size
-            );
+            wtr.write_record([i.to_string(), proof_size.to_string()])
+                .unwrap();
         }
     }
 }

@@ -6,6 +6,7 @@ mod tests {
     use std::mem::size_of;
 
     use crate::{prover::One2ManyProver, verifier::One2ManyVerifier};
+    use csv::Writer;
     use util::{
         algebra::{
             coset::Coset,
@@ -56,12 +57,12 @@ mod tests {
 
     #[test]
     fn test_proof_size() {
-        for i in 10..23 {
+        let mut wtr = Writer::from_path("polyfrim.csv").unwrap();
+        let range = 10..23;
+        for i in range.clone() {
             let proof_size = output_proof_size(i, 1);
-            println!(
-                "PolyFRIM pcs proof size of {} variables is {} bytes",
-                i, proof_size
-            );
+            wtr.write_record(&[i.to_string(), proof_size.to_string()])
+                .unwrap();
         }
     }
 }
