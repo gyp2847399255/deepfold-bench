@@ -1,12 +1,16 @@
 import os
 import random, string
+import csv
 
 def randomword(length):
    letters = string.ascii_lowercase
    return ''.join(random.choice(letters) for i in range(length))
 
 tmp_file = randomword(20) + '.txt'
-for i in range(5, 20):
+with open("fft_gkr.csv", mode='w', newline='') as file:
+    writer = csv.writer(file)
+
+for i in range(10, 23):
     print('bench fft_gkr of size', i)
     round = 10
     prover_time = 0
@@ -20,7 +24,5 @@ for i in range(5, 20):
         prover_time += float(p)
         proof_size += float(ps)
         verifier_time += float(v)
-    print('prover time:', prover_time / round, 's')
-    print('verifier time:', verifier_time / round, 's')
-    print('proof size:', proof_size / round, 'bytes')
+    writer.writerow([i, prover_time * 1000 / round, verifier_time * 1000 / round, proof_size / round])
 os.remove(tmp_file)
