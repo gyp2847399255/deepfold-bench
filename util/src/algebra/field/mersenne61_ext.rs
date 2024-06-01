@@ -1,4 +1,4 @@
-use super::Field;
+use super::MyField;
 use core::arch::x86_64::_mulx_u64;
 use rand::Rng;
 
@@ -117,7 +117,7 @@ impl std::cmp::PartialEq for Mersenne61Ext {
     }
 }
 
-impl Field for Mersenne61Ext {
+impl MyField for Mersenne61Ext {
     const FIELD_NAME: &'static str = "Mersenne61Ext";
     const LOG_ORDER: u64 = 62;
     const ROOT_OF_UNITY: Mersenne61Ext = Mersenne61Ext {

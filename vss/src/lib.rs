@@ -3,13 +3,13 @@ use std::usize;
 use util::{
     algebra::{
         coset::Coset,
-        field::{as_bytes_vec, Field},
+        field::{as_bytes_vec, MyField},
         polynomial::MultilinearPolynomial,
     },
     merkle_tree::{MerkleRoot, MerkleTreeProver},
 };
 
-struct Dealer<T: Field> {
+struct Dealer<T: MyField> {
     polynomial: MultilinearPolynomial<T>,
     lines: Vec<Vec<(T, T)>>,
     fiat_shamir: Vec<MerkleTreeProver>,
@@ -18,7 +18,7 @@ struct Dealer<T: Field> {
     final_value: Option<T>,
 }
 
-impl<T: Field> Dealer<T> {
+impl<T: MyField> Dealer<T> {
     pub fn new(polynomial: MultilinearPolynomial<T>, coset: &Coset<T>) -> Self {
         assert_eq!(coset.size(), 1 << (polynomial.variable_num() + 1));
         let sharing = coset.fft(polynomial.coefficients().clone());
@@ -76,14 +76,14 @@ impl<T: Field> Dealer<T> {
     }
 }
 
-struct Proof<T: Field> {
+struct Proof<T: MyField> {
     share: T,
     lines: Vec<(T, T)>,
     merkle_paths: Vec<Vec<u8>>,
     final_value: T,
 }
 
-impl<T: Field> Proof<T> {
+impl<T: MyField> Proof<T> {
     pub fn get_challenge(&self, index: usize, round: usize) -> T {
         let num = 1 << (self.lines.len() - round);
         let root = MerkleRoot::get_root(
@@ -96,12 +96,12 @@ impl<T: Field> Proof<T> {
     }
 }
 
-struct Party<T: Field> {
+struct Party<T: MyField> {
     point: T,
     index: usize,
 }
 
-impl<T: Field> Party<T> {
+impl<T: MyField> Party<T> {
     pub fn new(point: T, index: usize) -> Self {
         Party { point, index }
     }

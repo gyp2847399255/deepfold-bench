@@ -5,7 +5,7 @@ use pcs::{prover::One2ManyProver, verifier::One2ManyVerifier};
 use util::{
     algebra::{
         coset::Coset,
-        field::{mersenne61_ext::Mersenne61Ext, Field},
+        field::{mersenne61_ext::Mersenne61Ext, MyField},
         polynomial::MultilinearPolynomial,
     },
     random_oracle::RandomOracle,

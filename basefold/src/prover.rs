@@ -1,7 +1,7 @@
 use util::{
     algebra::{
         coset::Coset,
-        field::Field,
+        field::MyField,
         polynomial::{EqMultilinear, MultilinearPolynomial},
     },
     interpolation::InterpolateValue,
@@ -13,7 +13,7 @@ use util::{
 use crate::verifier::Verifier;
 
 #[derive(Clone)]
-pub struct Prover<T: Field> {
+pub struct Prover<T: MyField> {
     total_round: usize,
     interpolate_cosets: Vec<Coset<T>>,
     polynomial: MultilinearPolynomial<T>,
@@ -24,7 +24,7 @@ pub struct Prover<T: Field> {
     final_value: Option<T>,
 }
 
-impl<T: Field> Prover<T> {
+impl<T: MyField> Prover<T> {
     pub fn new(
         total_round: usize,
         interpolate_cosets: &Vec<Coset<T>>,

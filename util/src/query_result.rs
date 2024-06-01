@@ -1,15 +1,15 @@
-use crate::algebra::field::{as_bytes_vec, Field};
+use crate::algebra::field::{as_bytes_vec, MyField};
 use crate::merkle_tree::MerkleTreeVerifier;
 use std::collections::HashMap;
 use std::mem::size_of;
 
 #[derive(Clone)]
-pub struct QueryResult<T: Field> {
+pub struct QueryResult<T: MyField> {
     pub proof_bytes: Vec<u8>,
     pub proof_values: HashMap<usize, T>,
 }
 
-impl<T: Field> QueryResult<T> {
+impl<T: MyField> QueryResult<T> {
     pub fn verify_merkle_tree(
         &self,
         leaf_indices: &Vec<usize>,

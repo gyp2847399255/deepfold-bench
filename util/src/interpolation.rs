@@ -1,18 +1,18 @@
 use crate::merkle_tree::MERKLE_ROOT_SIZE;
 use crate::query_result::QueryResult;
 use crate::{
-    algebra::field::{as_bytes_vec, Field},
+    algebra::field::{as_bytes_vec, MyField},
     merkle_tree::MerkleTreeProver,
 };
 
 #[derive(Clone)]
-pub struct InterpolateValue<T: Field> {
+pub struct InterpolateValue<T: MyField> {
     pub value: Vec<T>,
     leaf_size: usize,
     merkle_tree: MerkleTreeProver,
 }
 
-impl<T: Field> InterpolateValue<T> {
+impl<T: MyField> InterpolateValue<T> {
     pub fn new(value: Vec<T>, leaf_size: usize) -> Self {
         let len = value.len() / leaf_size;
         let merkle_tree = MerkleTreeProver::new(

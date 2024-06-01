@@ -1,18 +1,18 @@
 use std::mem::size_of;
 
-use util::{algebra::field::Field, merkle_tree::MERKLE_ROOT_SIZE, query_result::QueryResult};
+use util::{algebra::field::MyField, merkle_tree::MERKLE_ROOT_SIZE, query_result::QueryResult};
 
 pub mod prover;
 pub mod verifier;
 
 #[derive(Clone)]
-pub struct DeepEval<T: Field> {
+pub struct DeepEval<T: MyField> {
     point: Vec<T>,
     first_eval: T,
     else_evals: Vec<T>,
 }
 
-impl<T: Field> DeepEval<T> {
+impl<T: MyField> DeepEval<T> {
     pub fn new(point: Vec<T>, poly_hypercube: Vec<T>) -> Self {
         DeepEval {
             point: point.clone(),
@@ -59,13 +59,13 @@ impl<T: Field> DeepEval<T> {
     }
 }
 
-pub struct Commit<T: Field> {
+pub struct Commit<T: MyField> {
     merkle_root: [u8; MERKLE_ROOT_SIZE],
     deep: T,
 }
 
 #[derive(Clone)]
-pub struct Proof<T: Field> {
+pub struct Proof<T: MyField> {
     merkle_root: Vec<[u8; MERKLE_ROOT_SIZE]>,
     query_result: Vec<QueryResult<T>>,
     deep_evals: Vec<(T, Vec<T>)>,
@@ -74,7 +74,7 @@ pub struct Proof<T: Field> {
     final_value: T,
 }
 
-impl<T: Field> Proof<T> {
+impl<T: MyField> Proof<T> {
     fn size(&self) -> usize {
         self.merkle_root.len() * MERKLE_ROOT_SIZE
             + self
@@ -95,14 +95,14 @@ mod tests {
     use util::{
         algebra::{
             coset::Coset,
-            field::{mersenne61_ext::Mersenne61Ext, Field},
+            field::{bn254::Bn254Fr, mersenne61_ext::Mersenne61Ext, MyField},
             polynomial::MultilinearPolynomial,
         },
         random_oracle::RandomOracle,
     };
     use util::{CODE_RATE, SECURITY_BITS};
 
-    fn output_proof_size<T: Field>(variable_num: usize) -> usize {
+    fn output_proof_size<T: MyField>(variable_num: usize) -> usize {
         let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
         let mut interpolate_cosets =
             vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
@@ -123,9 +123,9 @@ mod tests {
     #[test]
     fn test_proof_size() {
         let mut wtr = Writer::from_path("deepfold.csv").unwrap();
-        let range = 1..23;
+        let range = 10..23;
         for i in range.clone() {
-            let proof_size = output_proof_size::<Mersenne61Ext>(i);
+            let proof_size = output_proof_size::<Bn254Fr>(i);
             wtr.write_record(&[i.to_string(), proof_size.to_string()])
                 .unwrap();
         }

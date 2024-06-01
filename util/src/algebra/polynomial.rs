@@ -1,14 +1,14 @@
 use crate::batch_bit_reverse;
 
 use super::coset::Coset;
-use super::field::Field;
+use super::field::MyField;
 
 #[derive(Debug, Clone)]
-pub struct Polynomial<T: Field> {
+pub struct Polynomial<T: MyField> {
     pub coefficients: Vec<T>,
 }
 
-impl<T: Field> Polynomial<T> {
+impl<T: MyField> Polynomial<T> {
     pub fn new(mut coefficients: Vec<T>) -> Polynomial<T> {
         let zero = T::from_int(0);
         while *coefficients.last().unwrap() == zero {
@@ -23,7 +23,7 @@ impl<T: Field> Polynomial<T> {
 
     pub fn random_polynomial(degree: usize) -> Polynomial<T> {
         Polynomial {
-            coefficients: (0..degree).map(|_| Field::random_element()).collect(),
+            coefficients: (0..degree).map(|_| MyField::random_element()).collect(),
         }
     }
 
@@ -37,7 +37,7 @@ impl<T: Field> Polynomial<T> {
     }
 
     pub fn evaluation_at(&self, x: T) -> T {
-        let mut res = Field::from_int(0);
+        let mut res = MyField::from_int(0);
         for i in self.coefficients.iter().rev() {
             res *= x;
             res += *i;
@@ -68,12 +68,12 @@ impl<T: Field> Polynomial<T> {
 }
 
 #[derive(Debug, Clone)]
-pub struct VanishingPolynomial<T: Field> {
+pub struct VanishingPolynomial<T: MyField> {
     degree: usize,
     shift: T,
 }
 
-impl<T: Field> VanishingPolynomial<T> {
+impl<T: MyField> VanishingPolynomial<T> {
     pub fn new(coset: &Coset<T>) -> VanishingPolynomial<T> {
         let degree = coset.size();
         VanishingPolynomial {
@@ -88,11 +88,11 @@ impl<T: Field> VanishingPolynomial<T> {
 }
 
 #[derive(Debug, Clone)]
-pub struct MultilinearPolynomial<T: Field> {
+pub struct MultilinearPolynomial<T: MyField> {
     coefficients: Vec<T>,
 }
 
-impl<T: Field> MultilinearPolynomial<T> {
+impl<T: MyField> MultilinearPolynomial<T> {
     pub fn coefficients(&self) -> &Vec<T> {
         &self.coefficients
     }
@@ -168,7 +168,7 @@ impl<T: Field> MultilinearPolynomial<T> {
     pub fn random_polynomial(variable_num: usize) -> Self {
         MultilinearPolynomial {
             coefficients: (0..(1 << variable_num))
-                .map(|_| Field::random_element())
+                .map(|_| MyField::random_element())
                 .collect(),
         }
     }
@@ -187,7 +187,7 @@ impl<T: Field> MultilinearPolynomial<T> {
     }
 
     pub fn evaluate_as_polynomial(&self, point: T) -> T {
-        let mut res = Field::from_int(0);
+        let mut res = MyField::from_int(0);
         for i in self.coefficients.iter().rev() {
             res *= point;
             res += *i;
@@ -200,11 +200,11 @@ impl<T: Field> MultilinearPolynomial<T> {
     }
 }
 
-pub struct EqMultilinear<T: Field> {
+pub struct EqMultilinear<T: MyField> {
     b: Vec<T>,
 }
 
-impl<T: Field> EqMultilinear<T> {
+impl<T: MyField> EqMultilinear<T> {
     pub fn evaluate_hypercube(&self) -> Vec<T> {
         let mut stack = vec![T::from_int(1)];
         for b in self.b.iter() {

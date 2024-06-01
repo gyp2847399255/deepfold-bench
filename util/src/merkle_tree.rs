@@ -95,7 +95,7 @@ impl MerkleRoot {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::algebra::field::{as_bytes_vec, mersenne61_ext::Mersenne61Ext, Field};
+    use crate::algebra::field::{as_bytes_vec, mersenne61_ext::Mersenne61Ext, MyField};
 
     #[test]
     fn commit_and_open() {

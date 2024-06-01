@@ -2,7 +2,7 @@ use ff::{Field as Fd, PrimeField};
 use ff_derive_num::Num;
 use serde::{Deserialize, Serialize};
 
-use super::Field;
+use super::MyField;
 
 #[derive(PrimeField, Num, Deserialize, Serialize)]
 #[PrimeFieldModulus = "46242760681095663677370860714659204618859642560429202607213929836750194081793"]
@@ -16,7 +16,7 @@ impl std::fmt::Display for Ft255 {
     }
 }
 
-impl Field for Ft255 {
+impl MyField for Ft255 {
     const FIELD_NAME: &'static str = "Ft255";
     const LOG_ORDER: u64 = 41;
     const ROOT_OF_UNITY: Ft255 = Ft255([

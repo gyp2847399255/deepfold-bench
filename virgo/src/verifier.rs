@@ -5,12 +5,12 @@ use util::merkle_tree::MERKLE_ROOT_SIZE;
 use util::query_result::QueryResult;
 use util::random_oracle::RandomOracle;
 use util::{
-    algebra::{coset::Coset, field::Field},
+    algebra::{coset::Coset, field::MyField},
     merkle_tree::MerkleTreeVerifier,
 };
 
 #[derive(Clone)]
-pub struct FriVerifier<T: Field> {
+pub struct FriVerifier<T: MyField> {
     total_round: usize,
     interpolate_cosets: Vec<Coset<T>>,
     vector_interpolation_coset: Coset<T>,
@@ -24,7 +24,7 @@ pub struct FriVerifier<T: Field> {
     open_point: Option<Vec<T>>,
 }
 
-impl<T: Field> FriVerifier<T> {
+impl<T: MyField> FriVerifier<T> {
     pub fn new(
         total_round: usize,
         coset: &Vec<Coset<T>>,

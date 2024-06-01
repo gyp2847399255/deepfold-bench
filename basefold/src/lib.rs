@@ -10,7 +10,7 @@ mod tests {
     use util::{
         algebra::{
             coset::Coset,
-            field::{mersenne61_ext::Mersenne61Ext, Field},
+            field::{mersenne61_ext::Mersenne61Ext, MyField},
             polynomial::MultilinearPolynomial,
         },
         merkle_tree::MERKLE_ROOT_SIZE,

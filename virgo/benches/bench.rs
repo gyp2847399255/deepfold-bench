@@ -4,7 +4,7 @@ use criterion::*;
 
 use util::{
     algebra::{
-        coset::Coset, field::mersenne61_ext::Mersenne61Ext, field::Field,
+        coset::Coset, field::mersenne61_ext::Mersenne61Ext, field::MyField,
         polynomial::MultilinearPolynomial,
     },
     random_oracle::RandomOracle,

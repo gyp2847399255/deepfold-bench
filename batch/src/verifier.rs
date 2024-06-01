@@ -1,13 +1,13 @@
 use util::random_oracle::RandomOracle;
 use util::{
-    algebra::{coset::Coset, field::Field},
+    algebra::{coset::Coset, field::MyField},
     merkle_tree::MerkleTreeVerifier,
 };
 
 use crate::{Commit, DeepEval, Proof};
 
 #[derive(Clone)]
-pub struct Verifier<T: Field> {
+pub struct Verifier<T: MyField> {
     total_round: usize,
     interpolate_cosets: Vec<Coset<T>>,
     polynomial_roots: Vec<MerkleTreeVerifier>,
@@ -20,7 +20,7 @@ pub struct Verifier<T: Field> {
     open_point: Vec<T>,
 }
 
-impl<T: Field> Verifier<T> {
+impl<T: MyField> Verifier<T> {
     pub fn new(
         total_round: usize,
         coset: &Vec<Coset<T>>,

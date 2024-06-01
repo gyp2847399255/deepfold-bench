@@ -2,13 +2,13 @@ use util::algebra::polynomial::{MultilinearPolynomial, Polynomial};
 use util::merkle_tree::MERKLE_ROOT_SIZE;
 use util::random_oracle::RandomOracle;
 use util::{
-    algebra::{coset::Coset, field::Field},
+    algebra::{coset::Coset, field::MyField},
     merkle_tree::MerkleTreeVerifier,
     query_result::QueryResult,
 };
 
 #[derive(Clone)]
-pub struct One2ManyVerifier<T: Field> {
+pub struct One2ManyVerifier<T: MyField> {
     total_round: usize,
     log_max_degree: usize,
     interpolate_cosets: Vec<Coset<T>>,
@@ -20,7 +20,7 @@ pub struct One2ManyVerifier<T: Field> {
     open_point: Vec<T>,
 }
 
-impl<T: Field> One2ManyVerifier<T> {
+impl<T: MyField> One2ManyVerifier<T> {
     pub fn new(
         total_round: usize,
         log_max_degree: usize,

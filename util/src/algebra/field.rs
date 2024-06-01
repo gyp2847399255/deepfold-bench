@@ -1,9 +1,10 @@
 use crate::merkle_tree::MERKLE_ROOT_SIZE;
 
+pub mod bn254;
 pub mod ft255;
 pub mod mersenne61_ext;
 
-pub trait Field:
+pub trait MyField:
     Sized
     + Clone
     + Copy
@@ -62,7 +63,7 @@ pub trait Field:
 }
 
 #[inline]
-pub fn as_bytes_vec<T: Field>(s: &[T]) -> Vec<u8> {
+pub fn as_bytes_vec<T: MyField>(s: &[T]) -> Vec<u8> {
     let mut res = vec![];
     for i in s {
         res.append(&mut i.to_bytes());
@@ -70,7 +71,7 @@ pub fn as_bytes_vec<T: Field>(s: &[T]) -> Vec<u8> {
     res
 }
 
-pub fn batch_inverse<T: Field>(v: &Vec<T>) -> Vec<T> {
+pub fn batch_inverse<T: MyField>(v: &Vec<T>) -> Vec<T> {
     let len = v.len();
     let mut res = v.clone();
     for i in 1..len {
@@ -89,7 +90,7 @@ pub fn batch_inverse<T: Field>(v: &Vec<T>) -> Vec<T> {
 mod field_tests {
     use super::*;
 
-    pub fn add_and_sub<T: Field>() {
+    pub fn add_and_sub<T: MyField>() {
         for _i in 0..100 {
             let a = T::random_element();
             let b = T::random_element();
@@ -98,7 +99,7 @@ mod field_tests {
         }
     }
 
-    pub fn mult_and_inverse<T: Field>() {
+    pub fn mult_and_inverse<T: MyField>() {
         for _i in 0..100 {
             let a = T::random_element();
             let b = a.inverse();
@@ -108,7 +109,7 @@ mod field_tests {
         assert_eq!(T::INVERSE_2 * T::from_int(2), T::from_int(1));
     }
 
-    pub fn assigns<T: Field>() {
+    pub fn assigns<T: MyField>() {
         for _i in 0..10 {
             let mut a = T::random_element();
             let aa = a;
@@ -125,7 +126,7 @@ mod field_tests {
         }
     }
 
-    pub fn pow_and_generator<T: Field>() {
+    pub fn pow_and_generator<T: MyField>() {
         assert_eq!(T::get_generator(1), T::from_int(1));
         let x = T::get_generator(1 << 32);
         assert_eq!(x.pow(1 << 32), T::from_int(1));

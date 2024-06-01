@@ -5,13 +5,13 @@ use util::algebra::polynomial::Polynomial;
 use util::merkle_tree::MERKLE_ROOT_SIZE;
 use util::query_result::QueryResult;
 use util::{
-    algebra::{coset::Coset, field::Field},
+    algebra::{coset::Coset, field::MyField},
     interpolation::InterpolateValue,
     random_oracle::RandomOracle,
 };
 
 #[derive(Clone)]
-pub struct Prover<T: Field> {
+pub struct Prover<T: MyField> {
     total_round: usize,
     polynomial: Polynomial<T>,
     interpolate_cosets: Vec<Coset<T>>,
@@ -20,15 +20,17 @@ pub struct Prover<T: Field> {
     final_value: Option<T>,
 }
 
-impl<T: Field> Prover<T> {
+impl<T: MyField> Prover<T> {
     pub fn new(
         total_round: usize,
         interpolate_coset: &Vec<Coset<T>>,
         polynomial: Polynomial<T>,
         oracle: &RandomOracle<T>,
     ) -> Prover<T> {
-        let interpolate_polynomial =
-            InterpolateValue::new(interpolate_coset[0].fft(polynomial.coefficients().clone()), 2);
+        let interpolate_polynomial = InterpolateValue::new(
+            interpolate_coset[0].fft(polynomial.coefficients().clone()),
+            2,
+        );
 
         Prover {
             total_round,

@@ -1,8 +1,8 @@
-use crate::algebra::field::Field;
+use crate::algebra::field::MyField;
 use rand::Rng;
 
 #[derive(Debug, Clone)]
-pub struct RandomOracle<T: Field> {
+pub struct RandomOracle<T: MyField> {
     pub beta: T,
     pub rlc: T,
     pub folding_challenges: Vec<T>,
@@ -11,7 +11,7 @@ pub struct RandomOracle<T: Field> {
     pub query_list: Vec<usize>,
 }
 
-impl<T: Field> RandomOracle<T> {
+impl<T: MyField> RandomOracle<T> {
     pub fn new(total_round: usize, query_num: usize) -> Self {
         RandomOracle {
             beta: T::random_element(),

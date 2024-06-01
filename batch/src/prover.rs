@@ -1,5 +1,5 @@
 use util::{
-    algebra::{coset::Coset, field::Field, polynomial::MultilinearPolynomial},
+    algebra::{coset::Coset, field::MyField, polynomial::MultilinearPolynomial},
     interpolation::InterpolateValue,
     query_result::QueryResult,
     random_oracle::RandomOracle,
@@ -8,7 +8,7 @@ use util::{
 use crate::{Commit, DeepEval, Proof};
 
 #[derive(Clone)]
-pub struct Prover<T: Field> {
+pub struct Prover<T: MyField> {
     total_round: usize,
     interpolate_cosets: Vec<Coset<T>>,
     function_interpolations: Vec<InterpolateValue<T>>,
@@ -22,7 +22,7 @@ pub struct Prover<T: Field> {
     final_value: Option<T>,
 }
 
-impl<T: Field> Prover<T> {
+impl<T: MyField> Prover<T> {
     pub fn new(
         total_round: usize,
         interpolate_cosets: &Vec<Coset<T>>,

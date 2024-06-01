@@ -8,7 +8,7 @@ mod tests {
     use std::mem::size_of;
     use util::{
         algebra::{
-            coset::Coset, field::mersenne61_ext::Mersenne61Ext, field::Field,
+            coset::Coset, field::mersenne61_ext::Mersenne61Ext, field::MyField,
             polynomial::MultilinearPolynomial,
         },
         merkle_tree::MERKLE_ROOT_SIZE,

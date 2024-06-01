@@ -6,12 +6,12 @@ use util::merkle_tree::MERKLE_ROOT_SIZE;
 use util::query_result::QueryResult;
 // use util::query_result::QueryResult;
 use util::{
-    algebra::{coset::Coset, field::Field},
+    algebra::{coset::Coset, field::MyField},
     random_oracle::RandomOracle,
 };
 
 #[derive(Clone)]
-pub struct One2ManyProver<T: Field> {
+pub struct One2ManyProver<T: MyField> {
     total_round: usize,
     variable_num: usize,
     interpolate_cosets: Vec<Coset<T>>,
@@ -21,7 +21,7 @@ pub struct One2ManyProver<T: Field> {
     final_value: Option<Polynomial<T>>,
 }
 
-impl<T: Field> One2ManyProver<T> {
+impl<T: MyField> One2ManyProver<T> {
     pub fn new(
         total_round: usize,
         interpolate_coset: &Vec<Coset<T>>,

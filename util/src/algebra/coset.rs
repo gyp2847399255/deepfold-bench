@@ -1,13 +1,13 @@
-use super::{field::Field, polynomial::Polynomial};
+use super::{field::MyField, polynomial::Polynomial};
 use crate::batch_bit_reverse;
 
 #[derive(Debug, Clone, Copy)]
-struct Radix2Domain<T: Field> {
+struct Radix2Domain<T: MyField> {
     order: usize,
     omega: T,
 }
 
-impl<T: Field> Radix2Domain<T> {
+impl<T: MyField> Radix2Domain<T> {
     #[inline]
     pub fn new(order: usize, omega: T) -> Self {
         Radix2Domain { order, omega }
@@ -50,7 +50,7 @@ impl<T: Field> Radix2Domain<T> {
     }
 }
 
-fn multiply_by_coset<T: Field>(a: &mut Vec<T>, shift: T) {
+fn multiply_by_coset<T: MyField>(a: &mut Vec<T>, shift: T) {
     let mut t = shift;
     for i in 1..a.len() {
         a[i] *= t;
@@ -58,7 +58,7 @@ fn multiply_by_coset<T: Field>(a: &mut Vec<T>, shift: T) {
     }
 }
 
-fn _fft<T: Field>(a: &mut Vec<T>, omega: T) {
+fn _fft<T: MyField>(a: &mut Vec<T>, omega: T) {
     let n = a.len();
     let log_n = n.ilog2() as usize;
     let rank = batch_bit_reverse(log_n);
@@ -87,14 +87,14 @@ fn _fft<T: Field>(a: &mut Vec<T>, omega: T) {
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
-pub struct Coset<T: Field> {
+pub struct Coset<T: MyField> {
     elements: Arc<Vec<T>>,
     elements_inv: Arc<Vec<T>>,
     fft_eval_domain: Radix2Domain<T>,
     shift: T,
 }
 
-impl<T: Field> Coset<T> {
+impl<T: MyField> Coset<T> {
     pub fn mult(poly1: &Polynomial<T>, poly2: &Polynomial<T>) -> Polynomial<T> {
         let degree = {
             let max_d = std::cmp::max(poly1.degree(), poly2.degree()) + 1;

@@ -11,18 +11,18 @@ use util::query_result::QueryResult;
 use util::{
     algebra::{
         coset::Coset,
-        field::{as_bytes_vec, Field},
+        field::{as_bytes_vec, MyField},
     },
     merkle_tree::MerkleTreeProver,
 };
 
 #[derive(Clone)]
-struct InterpolateValue<T: Field> {
+struct InterpolateValue<T: MyField> {
     value: Vec<T>,
     merkle_tree: MerkleTreeProver,
 }
 
-impl<T: Field> InterpolateValue<T> {
+impl<T: MyField> InterpolateValue<T> {
     fn new(value: Vec<T>) -> Self {
         let len = value.len() / 2;
         let merkle_tree = MerkleTreeProver::new(
@@ -56,7 +56,7 @@ impl<T: Field> InterpolateValue<T> {
 }
 
 #[derive(Clone)]
-pub struct FriProver<T: Field> {
+pub struct FriProver<T: MyField> {
     total_round: usize,
     vector_interpolation_coset: Coset<T>,
     fri_cosets: Vec<Coset<T>>,
@@ -71,7 +71,7 @@ pub struct FriProver<T: Field> {
     final_value: Option<T>,
 }
 
-impl<T: Field> FriProver<T> {
+impl<T: MyField> FriProver<T> {
     pub fn new(
         total_round: usize,
         fri_cosets: &Vec<Coset<T>>,

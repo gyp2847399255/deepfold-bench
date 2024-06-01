@@ -5,7 +5,7 @@ use batch::{prover::Prover, verifier::Verifier};
 use util::{
     algebra::{
         coset::Coset,
-        field::{mersenne61_ext::Mersenne61Ext, Field},
+        field::{mersenne61_ext::Mersenne61Ext, MyField},
         polynomial::MultilinearPolynomial,
     },
     random_oracle::RandomOracle,
@@ -13,7 +13,7 @@ use util::{
 
 use util::{CODE_RATE, SECURITY_BITS};
 
-fn open<T: Field>(criterion: &mut Criterion, variable_num: usize) {
+fn open<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
     for i in 1..variable_num {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
@@ -45,7 +45,7 @@ fn bench_open(c: &mut Criterion) {
     }
 }
 
-fn verify<T: Field>(criterion: &mut Criterion, variable_num: usize) {
+fn verify<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
     for i in 1..variable_num {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
