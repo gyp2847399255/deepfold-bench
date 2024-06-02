@@ -2,6 +2,7 @@ use crate::merkle_tree::MERKLE_ROOT_SIZE;
 
 pub mod bn254;
 pub mod ft255;
+pub mod m31_ext;
 pub mod mersenne61_ext;
 
 pub trait MyField:
@@ -24,21 +25,20 @@ pub trait MyField:
 {
     const FIELD_NAME: &'static str;
     const LOG_ORDER: u64;
-    const ROOT_OF_UNITY: Self;
-    const INVERSE_2: Self;
-
     fn from_int(x: u64) -> Self;
     fn random_element() -> Self;
     fn inverse(&self) -> Self;
     fn is_zero(&self) -> bool;
     fn to_bytes(&self) -> Vec<u8>;
     fn from_hash(hash: [u8; MERKLE_ROOT_SIZE]) -> Self;
-
+    fn root_of_unity() -> Self;
+    fn inverse_2() -> Self;
+    #[inline(always)]
     fn get_generator(order: usize) -> Self {
         if (order & (order - 1)) != 0 || order > (1 << Self::LOG_ORDER) {
             panic!("invalid order");
         }
-        let mut res = Self::ROOT_OF_UNITY;
+        let mut res = Self::root_of_unity();
         let mut i = 1u64 << Self::LOG_ORDER;
         while i > order as u64 {
             res *= res;
@@ -46,8 +46,7 @@ pub trait MyField:
         }
         res
     }
-
-    #[inline]
+    #[inline(always)]
     fn pow(&self, mut n: usize) -> Self {
         let mut ret = Self::from_int(1);
         let mut base = self.clone();
@@ -106,7 +105,7 @@ mod field_tests {
             assert_eq!(a * b, T::from_int(1));
             assert_eq!(b * a, T::from_int(1));
         }
-        assert_eq!(T::INVERSE_2 * T::from_int(2), T::from_int(1));
+        assert_eq!(T::inverse_2() * T::from_int(2), T::from_int(1));
     }
 
     pub fn assigns<T: MyField>() {
@@ -128,8 +127,8 @@ mod field_tests {
 
     pub fn pow_and_generator<T: MyField>() {
         assert_eq!(T::get_generator(1), T::from_int(1));
-        let x = T::get_generator(1 << 32);
-        assert_eq!(x.pow(1 << 32), T::from_int(1));
-        assert_ne!(x.pow(1 << 31), T::from_int(1));
+        let x = T::get_generator(1 << 28);
+        assert_eq!(x.pow(1 << 28), T::from_int(1));
+        assert_ne!(x.pow(1 << 27), T::from_int(1));
     }
 }

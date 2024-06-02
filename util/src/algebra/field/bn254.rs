@@ -59,12 +59,20 @@ impl std::ops::MulAssign for Bn254Fr {
         *self = *self * rhs;
     }
 }
+const ROOT_OF_UNITY: Bn254Fr = Bn254Fr(Fr::ROOT_OF_UNITY);
+const INVERSE_2: Bn254Fr = Bn254Fr(Fr::TWO_INV);
 
 impl MyField for Bn254Fr {
     const FIELD_NAME: &'static str = "Ft255";
     const LOG_ORDER: u64 = 41;
-    const ROOT_OF_UNITY: Bn254Fr = Self(Fr::ROOT_OF_UNITY);
-    const INVERSE_2: Self = Self(Fr::TWO_INV);
+
+    fn inverse_2() -> Self {
+        INVERSE_2
+    }
+
+    fn root_of_unity() -> Self {
+        ROOT_OF_UNITY
+    }
 
     #[inline]
     fn from_int(x: u64) -> Self {

@@ -5,7 +5,7 @@ use deepfold::{prover::Prover, verifier::Verifier};
 use util::{
     algebra::{
         coset::Coset,
-        field::{mersenne61_ext::Mersenne61Ext, MyField},
+        field::{m31_ext::M31ext, mersenne61_ext::Mersenne61Ext, MyField},
         polynomial::MultilinearPolynomial,
     },
     random_oracle::RandomOracle,
@@ -33,8 +33,8 @@ fn commit<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_commit(c: &mut Criterion) {
-    for i in 1..23 {
-        commit::<Mersenne61Ext>(c, i);
+    for i in 5..23 {
+        commit::<M31ext>(c, i);
     }
 }
 
@@ -62,8 +62,8 @@ fn open<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_open(c: &mut Criterion) {
-    for i in 1..23 {
-        open::<Mersenne61Ext>(c, i);
+    for i in 5..23 {
+        open::<M31ext>(c, i);
     }
 }
 
@@ -92,8 +92,8 @@ fn verify<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_verify(c: &mut Criterion) {
-    for i in 1..23 {
-        verify::<Mersenne61Ext>(c, i);
+    for i in 5..23 {
+        verify::<M31ext>(c, i);
     }
 }
 

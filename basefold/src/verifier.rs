@@ -84,19 +84,19 @@ impl<T: MyField> Verifier<T> {
             let x_1 = self.sumcheck_values[i].1;
             let x_2 = self.sumcheck_values[i].2;
             assert_eq!(sum, x_0 + x_1);
-            sum = x_0 * (T::from_int(1) - challenge) * (T::from_int(2) - challenge) * T::INVERSE_2
-                + x_1 * challenge * (T::from_int(2) - challenge)
-                + x_2 * challenge * (challenge - T::from_int(1)) * T::INVERSE_2;
+            sum =
+                x_0 * (T::from_int(1) - challenge) * (T::from_int(2) - challenge) * T::inverse_2()
+                    + x_1 * challenge * (T::from_int(2) - challenge)
+                    + x_2 * challenge * (challenge - T::from_int(1)) * T::inverse_2();
             for j in &leaf_indices {
                 let x = folding_value[j];
                 let nx = folding_value[&(j + domain_size / 2)];
                 let v =
                     x + nx + challenge * (x - nx) * self.interpolate_cosets[i].element_inv_at(*j);
                 if i == self.total_round - 1 {
-                    assert_eq!(v * T::INVERSE_2, self.final_value.unwrap());
-                    // assert_eq!(self.final_value.unwrap(), sum);
+                    assert_eq!(v * T::inverse_2(), self.final_value.unwrap());
                 } else {
-                    assert_eq!(v * T::INVERSE_2, polynomial_proof[i + 1].proof_values[j]);
+                    assert_eq!(v * T::inverse_2(), polynomial_proof[i + 1].proof_values[j]);
                 }
             }
         }
