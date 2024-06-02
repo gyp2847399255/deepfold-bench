@@ -34,7 +34,7 @@ fn commit<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 
 fn bench_commit(c: &mut Criterion) {
     for i in 5..23 {
-        commit::<M31ext>(c, i);
+        commit::<Mersenne61Ext>(c, i);
     }
 }
 
@@ -63,7 +63,7 @@ fn open<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 
 fn bench_open(c: &mut Criterion) {
     for i in 5..23 {
-        open::<M31ext>(c, i);
+        open::<Mersenne61Ext>(c, i);
     }
 }
 
@@ -93,7 +93,7 @@ fn verify<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 
 fn bench_verify(c: &mut Criterion) {
     for i in 5..23 {
-        verify::<M31ext>(c, i);
+        verify::<Mersenne61Ext>(c, i);
     }
 }
 
