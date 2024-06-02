@@ -61,7 +61,7 @@ impl<T: MyField> Prover<T> {
             let x = get_folding_value[i];
             let nx = get_folding_value[i + len / 2];
             let new_v = (x + nx) + challenge * (x - nx) * coset.element_inv_at(i);
-            res.push(new_v * T::INVERSE_2);
+            res.push(new_v * T::inverse_2());
         }
         res
     }

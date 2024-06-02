@@ -116,18 +116,28 @@ impl std::cmp::PartialEq for Mersenne61Ext {
         self.real == rhs.real && self.image == rhs.image
     }
 }
-
-impl MyField for Mersenne61Ext {
-    const FIELD_NAME: &'static str = "Mersenne61Ext";
-    const LOG_ORDER: u64 = 62;
+impl Mersenne61Ext {
     const ROOT_OF_UNITY: Mersenne61Ext = Mersenne61Ext {
         real: 2147483648,
         image: 1033321771269002680,
     };
-    const INVERSE_2: Self = Mersenne61Ext {
+    const INVERSE_2: Mersenne61Ext = Mersenne61Ext {
         real: 1152921504606846976,
         image: 0,
     };
+}
+
+impl MyField for Mersenne61Ext {
+    const FIELD_NAME: &'static str = "Mersenne61Ext";
+    const LOG_ORDER: u64 = 62;
+    #[inline(always)]
+    fn root_of_unity() -> Self {
+        Mersenne61Ext::ROOT_OF_UNITY
+    }
+    #[inline(always)]
+    fn inverse_2() -> Self {
+        Mersenne61Ext::INVERSE_2
+    }
 
     #[inline]
     fn from_int(x: u64) -> Self {
@@ -159,7 +169,7 @@ impl MyField for Mersenne61Ext {
             image: rng.gen_range(0..MOD),
         }
     }
-
+    #[inline(always)]
     fn inverse(&self) -> Self {
         let p = 2305843009213693951u128;
         let mut n = p * p - 2;

@@ -110,9 +110,9 @@ impl<T: MyField> Verifier<T> {
                 let v =
                     x + nx + challenge * (x - nx) * self.interpolate_cosets[i].element_inv_at(*j);
                 if i == self.total_round - 1 {
-                    assert_eq!(v * T::INVERSE_2, self.final_value.unwrap());
+                    assert_eq!(v * T::inverse_2(), self.final_value.unwrap());
                 } else {
-                    assert_eq!(v * T::INVERSE_2, polynomial_proof[i + 1].proof_values[j]);
+                    assert_eq!(v * T::inverse_2(), polynomial_proof[i + 1].proof_values[j]);
                 }
             }
         }

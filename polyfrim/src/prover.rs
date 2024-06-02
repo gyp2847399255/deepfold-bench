@@ -54,7 +54,7 @@ impl<T: MyField> One2ManyProver<T> {
                 let x = values[i];
                 let nx = values[i + len];
                 let new_v = (x + nx) + parameter * (x - nx) * coset.element_inv_at(i);
-                new_v * T::INVERSE_2
+                new_v * T::inverse_2()
             })
             .collect();
         res

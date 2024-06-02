@@ -39,9 +39,9 @@ impl<T: MyField> Dealer<T> {
             let len = sharing.len() / 2;
             for j in 0..len {
                 let k = (sharing[j] - sharing[j + len])
-                    * T::INVERSE_2
+                    * T::inverse_2()
                     * self.coset.element_inv_at(j << i);
-                let b = (sharing[j] + sharing[j + len]) * T::INVERSE_2;
+                let b = (sharing[j] + sharing[j + len]) * T::inverse_2();
                 line.push((k, b));
             }
             let tree =

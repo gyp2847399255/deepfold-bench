@@ -16,28 +16,29 @@ impl std::fmt::Display for Ft255 {
     }
 }
 
+const INVERSE_2: Ft255 = Ft255([
+    18256200907639226367,
+    1192390052779827407,
+    168358299667310230,
+    1856475237906044671,
+]);
+
 impl MyField for Ft255 {
     const FIELD_NAME: &'static str = "Ft255";
     const LOG_ORDER: u64 = 41;
-    const ROOT_OF_UNITY: Ft255 = Ft255([
-        11273735707518656615,
-        10803742158212994690,
-        9604558309451741198,
-        1652257763144146550,
-    ]);
-    const INVERSE_2: Self = Ft255([
-        18256200907639226367,
-        1192390052779827407,
-        168358299667310230,
-        1856475237906044671,
-    ]);
-
-    #[inline]
+    #[inline(always)]
+    fn root_of_unity() -> Self {
+        ROOT_OF_UNITY
+    }
+    #[inline(always)]
+    fn inverse_2() -> Self {
+        INVERSE_2
+    }
+    #[inline(always)]
     fn from_int(x: u64) -> Self {
         x.into()
     }
-
-    #[inline]
+    #[inline(always)]
     fn from_hash(hash: [u8; crate::merkle_tree::MERKLE_ROOT_SIZE]) -> Self {
         Ft255([
             (0..8)
@@ -54,8 +55,7 @@ impl MyField for Ft255 {
                 .fold(0, |acc, x| (acc << 8) + hash[x] as u64),
         ])
     }
-
-    #[inline]
+    #[inline(always)]
     fn is_zero(&self) -> bool {
         for i in self.0 {
             if i != 0 {
@@ -64,17 +64,15 @@ impl MyField for Ft255 {
         }
         true
     }
-
-    #[inline]
+    #[inline(always)]
     fn random_element() -> Self {
         Ft255::random(rand::thread_rng())
     }
-
+    #[inline(always)]
     fn inverse(&self) -> Self {
         self.invert().unwrap()
     }
-
-    #[inline]
+    #[inline(always)]
     fn to_bytes(&self) -> Vec<u8> {
         let x = self
             .0

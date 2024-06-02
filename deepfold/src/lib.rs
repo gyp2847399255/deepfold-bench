@@ -95,7 +95,7 @@ mod tests {
     use util::{
         algebra::{
             coset::Coset,
-            field::{bn254::Bn254Fr, mersenne61_ext::Mersenne61Ext, MyField},
+            field::{m31_ext::M31ext, mersenne61_ext::Mersenne61Ext, MyField},
             polynomial::MultilinearPolynomial,
         },
         random_oracle::RandomOracle,
@@ -123,9 +123,9 @@ mod tests {
     #[test]
     fn test_proof_size() {
         let mut wtr = Writer::from_path("deepfold.csv").unwrap();
-        let range = 10..23;
+        let range = 5..23;
         for i in range.clone() {
-            let proof_size = output_proof_size::<Bn254Fr>(i);
+            let proof_size = output_proof_size::<M31ext>(i);
             wtr.write_record(&[i.to_string(), proof_size.to_string()])
                 .unwrap();
         }

@@ -83,9 +83,9 @@ impl<T: MyField> Prover<T> {
             let nx = get_folding_value[i + len / 2];
             let new_v = (x + nx) + challenge * (x - nx) * coset.element_inv_at(i);
             res.push(if round == self.total_round - 1 {
-                new_v * T::INVERSE_2
+                new_v * T::inverse_2()
             } else {
-                new_v * T::INVERSE_2
+                new_v * T::inverse_2()
                     + self.function_interpolations[round + 1].value[i] * challenge_2
             });
         }
