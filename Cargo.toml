@@ -2,7 +2,6 @@
 members = [
     "util",
     "deepfold", 
-    "vss",
     "batch",
     "basefold",
     "virgo",
