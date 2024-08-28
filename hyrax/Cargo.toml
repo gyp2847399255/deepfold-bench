@@ -1,0 +1,17 @@
+[package]
+name = "hyrax"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bulletproofs = "4.0.0"
+curve25519-dalek-ng = { version = "4.1", features = ["alloc"] }
+rand = "0.8.5"
+rand_core = "0.6.3"
+sha2 = "0.9"
+
+[[bench]]
+name = "bench"
+harness = false
