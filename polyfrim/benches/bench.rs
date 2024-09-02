@@ -1,7 +1,7 @@
 extern crate criterion;
 use criterion::*;
 
-use pcs::{prover::One2ManyProver, verifier::One2ManyVerifier};
+use polyfrim::{prover::One2ManyProver, verifier::One2ManyVerifier};
 use util::{
     algebra::{
         coset::Coset,

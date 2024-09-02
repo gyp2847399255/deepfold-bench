@@ -801,15 +801,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
-name = "pcs"
-version = "0.1.0"
-dependencies = [
- "criterion",
- "csv",
- "util",
-]
-
-[[package]]
 name = "pin-project-lite"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -841,6 +832,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81b30686a7d9c3e010b84284bdd26a29f2138574f52f5eb6f794fc0ad924e705"
 dependencies = [
  "plotters-backend",
+]
+
+[[package]]
+name = "polyfrim"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "csv",
+ "util",
 ]
 
 [[package]]
