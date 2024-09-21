@@ -14,7 +14,7 @@ mod tests {
         merkle_tree::MERKLE_ROOT_SIZE,
         random_oracle::RandomOracle,
     };
-    use util::{CODE_RATE, SECURITY_BITS};
+    use util::{CODE_RATE, SECURITY_BITS, STEP};
 
     fn output_proof_size(variable_num: usize) -> usize {
         let degree = 1 << variable_num;
@@ -27,9 +27,9 @@ mod tests {
             interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
         }
         let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
-        let mut prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
+        let mut prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle, STEP);
         let commits = prover.commit_polynomial();
-        let mut verifier = Verifier::new(variable_num, &interpolate_cosets, commits, &oracle);
+        let mut verifier = Verifier::new(variable_num, &interpolate_cosets, commits, &oracle, STEP);
         let point = verifier.get_open_point();
 
         let evaluation = prover.prove(point);

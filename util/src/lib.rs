@@ -10,7 +10,7 @@ pub mod random_oracle;
 
 pub const CODE_RATE: usize = 3;
 pub const SECURITY_BITS: usize = 100;
-pub const STEP: u32 = 1;
+pub const STEP: usize = 1;
 
 pub fn split_n(mut n: usize) -> Vec<usize> {
     let mut res = vec![];

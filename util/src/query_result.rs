@@ -6,6 +6,7 @@ use std::mem::size_of;
 #[derive(Clone)]
 pub struct QueryResult<T: MyField> {
     pub proof_bytes: Vec<u8>,
+    // Cauchy: Why use hashmap rather than Vec here?
     pub proof_values: HashMap<usize, T>,
 }
 

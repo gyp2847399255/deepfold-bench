@@ -9,8 +9,6 @@ pub mod bn254;
 pub mod ft255;
 pub mod m31_ext;
 pub mod mersenne61_ext;
-pub mod goldilocks64;
-pub mod goldilocks64ext;
 
 pub trait MyField:
     Sized
