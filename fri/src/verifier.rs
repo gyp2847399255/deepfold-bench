@@ -31,14 +31,10 @@ impl<T: MyField> Verifier<T> {
             total_round,
             interpolate_cosets: coset.clone(),
             oracle: oracle.clone(),
-<<<<<<< HEAD
-            interpolation_roots: vec![MerkleTreeVerifier::new(coset[0].size() / (usize::pow(2, step as u32)), &commit)],
-=======
             interpolation_roots: vec![MerkleTreeVerifier::new(
                 coset[0].size() / (usize::pow(2, step as u32)),
                 &commit,
             )],
->>>>>>> b9e5052 (feat: solved running errors and passed the test func)
             final_value: None,
             final_poly: None,
             open_point: T::random_element(),
@@ -72,12 +68,7 @@ impl<T: MyField> Verifier<T> {
     pub fn verify(&self, interpolation_proof: &Vec<QueryResult<T>>, evaluation: T) -> bool {
         let mut leaf_indices = self.oracle.query_list.clone();
         for i in 0..self.total_round / self.step - 1 {
-<<<<<<< HEAD
-
-            let domain_size = self.interpolate_cosets[i*self.step].size();
-=======
             let domain_size = self.interpolate_cosets[i * self.step].size();
->>>>>>> b9e5052 (feat: solved running errors and passed the test func)
             leaf_indices = leaf_indices
                 .iter_mut()
                 .map(|v| *v % (domain_size >> self.step))
@@ -117,25 +108,14 @@ impl<T: MyField> Verifier<T> {
                 let mut verify_inds = vec![];
                 for j in 0..usize::pow(2, self.step as u32) {
                     // Init verify values, which is the total values in the first step
-<<<<<<< HEAD
-                    verify_values.push(get_folding_value(&(k+j*domain_size/usize::pow(2, self.step as u32))));
-                    verify_inds.push(k+j*domain_size/usize::pow(2, self.step as u32));
-=======
                     let ind = k + j * domain_size / usize::pow(2, self.step as u32);
                     verify_values.push(get_folding_value(&ind));
                     verify_inds.push(ind);
->>>>>>> b9e5052 (feat: solved running errors and passed the test func)
                 }
                 for j in 0..self.step {
                     let size = verify_values.len();
                     let mut tmp_values = vec![];
                     let mut tmp_inds = vec![];
-<<<<<<< HEAD
-                    for l in 0..usize::pow(2, (self.step-j-1) as u32) {
-                        x = verify_values[l];
-                        nx = verify_values[l + size/2];
-                        tmp_values.push(x + nx + challenge[j] * (x - nx) * self.interpolate_cosets[i].element_inv_at(verify_inds[l]));
-=======
                     for l in 0..size / 2 {
                         x = verify_values[l];
                         nx = verify_values[l + size / 2];
@@ -146,7 +126,6 @@ impl<T: MyField> Verifier<T> {
                                     * self.interpolate_cosets[i * self.step + j]
                                         .element_inv_at(verify_inds[l]),
                         );
->>>>>>> b9e5052 (feat: solved running errors and passed the test func)
                         tmp_inds.push(verify_inds[l]);
                     }
                     verify_values = tmp_values;
@@ -165,11 +144,6 @@ impl<T: MyField> Verifier<T> {
             &self.interpolation_roots[i],
         );
 
-<<<<<<< HEAD
-        let coset = self.interpolate_cosets[i].clone();
-        for x in 0..coset.size() {
-            assert_eq!(self.final_poly.clone().unwrap().evaluation_at(coset.element_at(x)), interpolation_proof[i].proof_values[&x])
-=======
         let coset = self.interpolate_cosets[i * self.step].clone();
         for x in 0..coset.size() {
             assert_eq!(
@@ -179,7 +153,6 @@ impl<T: MyField> Verifier<T> {
                     .evaluation_at(coset.element_at(x)),
                 interpolation_proof[i].proof_values[&x]
             )
->>>>>>> b9e5052 (feat: solved running errors and passed the test func)
         }
         true
     }
