@@ -61,7 +61,11 @@ impl<T: MyField> Prover<T> {
 
     pub fn commit_foldings_multi_step(&self, verifier: &mut Verifier<T>) {
         // Todo: 边缘case检测
+<<<<<<< HEAD
         for i in 0..self.total_round / self.step as usize {
+=======
+        for i in 1..self.total_round / self.step as usize + 1 {
+>>>>>>> b9e5052 (feat: solved running errors and passed the test func)
             let interpolation = &self.interpolations[i];
             verifier.receive_interpolation_root(interpolation.leave_num(), interpolation.commit());
         }
@@ -73,7 +77,11 @@ impl<T: MyField> Prover<T> {
         let mut tmp_folding_value = folding_value.clone();
 
         for j in 0..self.step as usize {
+<<<<<<< HEAD
             let mut coset = self.interpolate_cosets[round+j].clone();
+=======
+            let mut coset = self.interpolate_cosets[self.step*round+j].clone();
+>>>>>>> b9e5052 (feat: solved running errors and passed the test func)
             res = vec![];
             let mut new_v;
             let len = coset.size();
@@ -120,13 +128,23 @@ impl<T: MyField> Prover<T> {
             } else {
                 self.evaluation_next_domain(&self.interpolations[i].value, i, challenge)
             };
+<<<<<<< HEAD
+=======
+
+>>>>>>> b9e5052 (feat: solved running errors and passed the test func)
             if i < self.total_round / self.step as usize - 1 {
                 self.interpolations
                     .push(InterpolateValue::new(next_evalutation, usize::pow(2, self.step as u32)));
             } else {
                 // self.final_value = Some(next_evalutation[0]);
                 // self.final_values = Some(next_evalutation);
+<<<<<<< HEAD
                 self.final_poly = Some(Polynomial::new(self.interpolate_cosets[i*self.step].ifft(next_evalutation)));
+=======
+                self.interpolations
+                .push(InterpolateValue::new(next_evalutation.clone(), usize::pow(2, self.step as u32)));
+                self.final_poly = Some(Polynomial::new(self.interpolate_cosets[(i+1)*self.step].ifft(next_evalutation.clone())));
+>>>>>>> b9e5052 (feat: solved running errors and passed the test func)
             }
         }
         res.unwrap()
@@ -136,17 +154,30 @@ impl<T: MyField> Prover<T> {
         let mut folding_res = vec![];
         let mut leaf_indices = self.oracle.query_list.clone();
 
+<<<<<<< HEAD
         for i in 0..self.total_round / self.step {
             let len = self.interpolate_cosets[i*self.step].size();
             leaf_indices = leaf_indices.iter_mut().map(|v| *v % (len >> 1)).collect();
+=======
+        for i in 0..self.total_round / self.step+1 {
+            let len = self.interpolate_cosets[i*self.step].size();
+            if i == self.total_round / self.step {
+                let final_round_interpolation = self.interpolations[i].clone();
+                leaf_indices = (0..final_round_interpolation.value.len()).collect();
+            }
+            leaf_indices = leaf_indices.iter_mut().map(|v| *v % (len >> self.step)).collect();
+>>>>>>> b9e5052 (feat: solved running errors and passed the test func)
             leaf_indices.sort();
             leaf_indices.dedup();
 
             folding_res.push(self.interpolations[i].query(&leaf_indices));
         }
         // Cauchy: also query all values in the last round for full verification
+<<<<<<< HEAD
         let final_round_interpolation = self.interpolations[self.total_round / self.step].clone();
         folding_res.push(final_round_interpolation.query(&(0..final_round_interpolation.value.len()).collect()));
+=======
+>>>>>>> b9e5052 (feat: solved running errors and passed the test func)
         folding_res
     }
 }

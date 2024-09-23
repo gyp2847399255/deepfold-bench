@@ -17,7 +17,11 @@ fn commit<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let degree = 1 << variable_num;
     let polynomial = Polynomial::random_polynomial(degree);
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
+<<<<<<< HEAD
     for i in 1..total_round {
+=======
+    for i in 1..total_round+1 {
+>>>>>>> b9e5052 (feat: solved running errors and passed the test func)
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(total_round, SECURITY_BITS / CODE_RATE);
@@ -38,7 +42,7 @@ fn commit<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_commit(c: &mut Criterion) {
-    for i in 10..23 {
+    for i in 10..19 {
         commit::<Mersenne61Ext>(c, i);
     }
 }
@@ -48,7 +52,11 @@ fn open<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let degree = 1 << variable_num;
     let polynomial = Polynomial::random_polynomial(degree);
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
+<<<<<<< HEAD
     for i in 1..total_round {
+=======
+    for i in 1..total_round+1 {
+>>>>>>> b9e5052 (feat: solved running errors and passed the test func)
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(total_round, SECURITY_BITS / CODE_RATE);
@@ -74,7 +82,7 @@ fn open<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_open(c: &mut Criterion) {
-    for i in 10..23 {
+    for i in 10..19 {
         open::<Mersenne61Ext>(c, i);
     }
 }
@@ -87,7 +95,11 @@ fn verify<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
         1 << (variable_num + CODE_RATE),
         Mersenne61Ext::from_int(1),
     )];
+<<<<<<< HEAD
     for i in 1..total_round {
+=======
+    for i in 1..total_round+1 {
+>>>>>>> b9e5052 (feat: solved running errors and passed the test func)
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(total_round, SECURITY_BITS / CODE_RATE);
@@ -111,7 +123,7 @@ fn verify<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_verify(c: &mut Criterion) {
-    for i in 10..23 {
+    for i in 10..19 {
         verify::<Mersenne61Ext>(c, i);
     }
 }
