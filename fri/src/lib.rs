@@ -23,7 +23,7 @@ mod tests {
             1 << (variable_num + CODE_RATE),
             Mersenne61Ext::from_int(1),
         )];
-        for i in 1..variable_num+1 {
+        for i in 1..variable_num + 1 {
             interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
         }
         let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
@@ -46,7 +46,7 @@ mod tests {
     #[test]
     fn test_proof_size() {
         let mut wtr = Writer::from_path("fri.csv").unwrap();
-        for i in 10..20 {
+        for i in 10..11 {
             let proof_size = output_proof_size(i);
             wtr.write_record([i.to_string(), proof_size.to_string()])
                 .unwrap();

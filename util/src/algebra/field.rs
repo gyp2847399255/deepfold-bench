@@ -1,9 +1,9 @@
 use crate::merkle_tree::MERKLE_ROOT_SIZE;
+use rand::RngCore;
 use std::{
     fmt::Debug,
     ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
-use rand::RngCore;
 
 pub mod bn254;
 pub mod ft255;
@@ -69,21 +69,22 @@ pub trait MyField:
 // Cauchy: define AnotherField, FftField trait for goldilocks and goldilocks64ext from DeepFold-Hyperplonk
 
 pub trait AnotherField:
-Copy
-+ Clone
-+ Debug
-+ Default
-+ PartialEq
-+ From<u32>
-+ From<Self::BaseField>
-+ Neg<Output = Self>
-+ Add<Output = Self>
-+ Sub<Output = Self>
-+ Mul<Output = Self>
-+ AddAssign
-+ SubAssign
-+ MulAssign
-+ MyField {
+    Copy
+    + Clone
+    + Debug
+    + Default
+    + PartialEq
+    + From<u32>
+    + From<Self::BaseField>
+    + Neg<Output = Self>
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + AddAssign
+    + SubAssign
+    + MulAssign
+    + MyField
+{
     const NAME: &'static str;
     const SIZE: usize;
     const INV_2: Self;
@@ -117,7 +118,6 @@ pub trait FftField: AnotherField + From<Self::FftBaseField> {
     const ROOT_OF_UNITY: Self;
     type FftBaseField: FftField<BaseField = Self::BaseField>;
 }
-
 
 #[inline]
 pub fn as_bytes_vec<T: MyField>(s: &[T]) -> Vec<u8> {

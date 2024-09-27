@@ -17,7 +17,7 @@ fn commit<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let degree = 1 << variable_num;
     let polynomial = Polynomial::random_polynomial(degree);
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
-    for i in 1..total_round+1 {
+    for i in 1..total_round + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(total_round, SECURITY_BITS / CODE_RATE);
@@ -48,7 +48,7 @@ fn open<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let degree = 1 << variable_num;
     let polynomial = Polynomial::random_polynomial(degree);
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
-    for i in 1..total_round+1 {
+    for i in 1..total_round + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(total_round, SECURITY_BITS / CODE_RATE);
@@ -87,7 +87,7 @@ fn verify<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
         1 << (variable_num + CODE_RATE),
         Mersenne61Ext::from_int(1),
     )];
-    for i in 1..total_round+1 {
+    for i in 1..total_round + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(total_round, SECURITY_BITS / CODE_RATE);

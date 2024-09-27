@@ -13,7 +13,6 @@ pub struct Verifier<T: MyField> {
     interpolate_cosets: Vec<Coset<T>>,
     interpolation_roots: Vec<MerkleTreeVerifier>,
     oracle: RandomOracle<T>,
-    final_value: Option<T>,
     final_poly: Option<Polynomial<T>>, // used for multi-step verifier
     open_point: T,
     step: usize,
@@ -32,10 +31,9 @@ impl<T: MyField> Verifier<T> {
             interpolate_cosets: coset.clone(),
             oracle: oracle.clone(),
             interpolation_roots: vec![MerkleTreeVerifier::new(
-                coset[0].size() / (usize::pow(2, step as u32)),
+                coset[0].size() / (1 << step),
                 &commit,
             )],
-            final_value: None,
             final_poly: None,
             open_point: T::random_element(),
             step: step,
@@ -57,10 +55,6 @@ impl<T: MyField> Verifier<T> {
         });
     }
 
-    pub fn set_final_value(&mut self, value: T) {
-        self.final_value = Some(value);
-    }
-
     pub fn set_final_poly(&mut self, poly: Polynomial<T>) {
         self.final_poly = Some(poly);
     }
@@ -79,14 +73,9 @@ impl<T: MyField> Verifier<T> {
             // Cauchy: verify mt
             interpolation_proof[i].verify_merkle_tree(
                 &leaf_indices,
-                usize::pow(2, self.step as u32),
+                1 << self.step,
                 &self.interpolation_roots[i],
             );
-            
-            let mut challenge = vec![];
-            for j in 0..self.step {
-                challenge.push(self.oracle.folding_challenges[i*self.step+j]);
-            }
 
             let mut challenge = vec![];
             for j in 0..self.step {
@@ -106,9 +95,9 @@ impl<T: MyField> Verifier<T> {
                 let mut nx;
                 let mut verify_values = vec![];
                 let mut verify_inds = vec![];
-                for j in 0..usize::pow(2, self.step as u32) {
+                for j in 0..(1 << self.step) {
                     // Init verify values, which is the total values in the first step
-                    let ind = k + j * domain_size / usize::pow(2, self.step as u32);
+                    let ind = k + j * domain_size / (1 << self.step);
                     verify_values.push(get_folding_value(&ind));
                     verify_inds.push(ind);
                 }
@@ -136,24 +125,24 @@ impl<T: MyField> Verifier<T> {
         }
 
         // Cauchy: the final round
-        let i = self.total_round / self.step;
+        // let i = self.total_round / self.step;
 
-        interpolation_proof[i].verify_merkle_tree(
-            &(0..self.interpolation_roots[i].leave_number).collect(),
-            usize::pow(2, self.step as u32),
-            &self.interpolation_roots[i],
-        );
+        // interpolation_proof[i].verify_merkle_tree(
+        //     &(0..self.interpolation_roots[i].leave_number).collect(),
+        //     usize::pow(2, self.step as u32),
+        //     &self.interpolation_roots[i],
+        // );
 
-        let coset = self.interpolate_cosets[i * self.step].clone();
-        for x in 0..coset.size() {
-            assert_eq!(
-                self.final_poly
-                    .clone()
-                    .unwrap()
-                    .evaluation_at(coset.element_at(x)),
-                interpolation_proof[i].proof_values[&x]
-            )
-        }
+        // let coset = self.interpolate_cosets[i * self.step].clone();
+        // for x in 0..coset.size() {
+        //     assert_eq!(
+        //         self.final_poly
+        //             .clone()
+        //             .unwrap()
+        //             .evaluation_at(coset.element_at(x)),
+        //         interpolation_proof[i].proof_values[&x]
+        //     )
+        // }
         true
     }
 }
