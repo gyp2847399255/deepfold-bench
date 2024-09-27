@@ -5,7 +5,7 @@ use deepfold::{prover::Prover, verifier::Verifier};
 use util::{
     algebra::{
         coset::Coset,
-        field::{m31_ext::M31ext, mersenne61_ext::Mersenne61Ext, MyField},
+        field::{mersenne61_ext::Mersenne61Ext, MyField},
         polynomial::MultilinearPolynomial,
     },
     random_oracle::RandomOracle,

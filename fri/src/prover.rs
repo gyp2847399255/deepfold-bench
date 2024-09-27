@@ -68,7 +68,7 @@ impl<T: MyField> Prover<T> {
         let mut tmp_folding_value = folding_value.clone();
 
         for j in 0..self.step as usize {
-            let mut coset = self.interpolate_cosets[self.step * round + j].clone();
+            let coset = self.interpolate_cosets[self.step * round + j].clone();
             res = vec![];
             let mut new_v;
             let len = coset.size();
@@ -117,13 +117,13 @@ impl<T: MyField> Prover<T> {
             };
             if i < self.total_round / self.step as usize - 1 {
                 self.interpolations
-                    .push(InterpolateValue::new(next_evalutation, (1 << self.step)));
+                    .push(InterpolateValue::new(next_evalutation, 1 << self.step));
             } else {
                 // self.final_value = Some(next_evalutation[0]);
                 // self.final_values = Some(next_evalutation);
                 self.interpolations.push(InterpolateValue::new(
                     next_evalutation.clone(),
-                    (1 << self.step),
+                    1 << self.step,
                 ));
                 self.final_poly = Some(Polynomial::new(
                     self.interpolate_cosets[(i + 1) * self.step].ifft(next_evalutation.clone()),

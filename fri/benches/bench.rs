@@ -5,7 +5,7 @@ use fri::{prover::Prover, verifier::Verifier};
 use util::{
     algebra::{
         coset::Coset,
-        field::{ft255::Ft255, mersenne61_ext::Mersenne61Ext, MyField},
+        field::{mersenne61_ext::Mersenne61Ext, MyField},
         polynomial::Polynomial,
     },
     random_oracle::RandomOracle,

@@ -95,7 +95,7 @@ mod tests {
     use util::{
         algebra::{
             coset::Coset,
-            field::{m31_ext::M31ext, mersenne61_ext::Mersenne61Ext, MyField},
+            field::{m31_ext::M31ext, MyField},
             polynomial::MultilinearPolynomial,
         },
         random_oracle::RandomOracle,
