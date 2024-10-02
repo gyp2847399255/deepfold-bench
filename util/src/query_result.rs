@@ -18,6 +18,7 @@ impl<T: MyField> QueryResult<T> {
         merkle_verifier: &MerkleTreeVerifier,
     ) -> bool {
         let len = merkle_verifier.leave_number;
+
         let leaves: Vec<Vec<u8>> = leaf_indices
             .iter()
             .map(|x| {

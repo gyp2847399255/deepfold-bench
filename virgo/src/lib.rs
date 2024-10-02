@@ -15,34 +15,38 @@ mod tests {
         random_oracle::RandomOracle,
     };
 
-    use util::{CODE_RATE, SECURITY_BITS};
+    use util::{CODE_RATE, SECURITY_BITS, STEP};
     fn output_proof_size(variable_num: usize) -> usize {
+        let total_round = variable_num;
         let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
         let mut interpolate_cosets = vec![Coset::new(
             1 << (variable_num + CODE_RATE),
             Mersenne61Ext::random_element(),
         )];
-        for i in 1..variable_num {
+        for i in 1..variable_num + 1 {
             interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
         }
-        let random_oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
+        let random_oracle = RandomOracle::new(total_round, SECURITY_BITS / CODE_RATE);
         let vector_interpolation_coset =
             Coset::new(1 << variable_num, Mersenne61Ext::random_element());
         let mut prover = FriProver::new(
-            variable_num,
+            total_round,
             &interpolate_cosets,
             &vector_interpolation_coset,
             polynomial,
             &random_oracle,
+            STEP,
         );
         let commit = prover.commit_first_polynomial();
         let mut verifier = FriVerifier::new(
-            variable_num,
+            total_round,
             &interpolate_cosets,
             &vector_interpolation_coset,
             commit,
             &random_oracle,
+            STEP,
         );
+        // cauchy: why vector of points rather than a single point?
         let open_point = verifier.get_open_point();
         prover.commit_functions(&mut verifier, &open_point);
         prover.prove();
@@ -61,7 +65,7 @@ mod tests {
     #[test]
     fn test_virgo_proof_size() {
         let mut wtr = Writer::from_path("virgo.csv").unwrap();
-        let range = 10..23;
+        let range = 10..18;
         for i in range.clone() {
             let proof_size = output_proof_size(i);
             wtr.write_record([i.to_string(), proof_size.to_string()])
