@@ -148,7 +148,6 @@ impl<T: MyField> Prover<T> {
 
             folding_res.push(self.interpolations[i].query(&leaf_indices));
         }
-        // Cauchy: also query all values in the last round for full verification
         folding_res
     }
 }
