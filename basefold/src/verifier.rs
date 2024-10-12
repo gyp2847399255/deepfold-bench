@@ -1,3 +1,4 @@
+use util::algebra::polynomial::Polynomial;
 use util::merkle_tree::MERKLE_ROOT_SIZE;
 use util::random_oracle::RandomOracle;
 use util::{
@@ -13,9 +14,11 @@ pub struct Verifier<T: MyField> {
     polynomial_roots: Vec<MerkleTreeVerifier>,
     oracle: RandomOracle<T>,
     final_value: Option<T>,
+    final_poly: Option<Polynomial<T>>,
     sumcheck_values: Vec<(T, T, T)>,
     open_point: Vec<T>,
     evaluation: Option<T>,
+    step: usize,
 }
 
 impl<T: MyField> Verifier<T> {
@@ -24,16 +27,22 @@ impl<T: MyField> Verifier<T> {
         coset: &Vec<Coset<T>>,
         commit: [u8; MERKLE_ROOT_SIZE],
         oracle: &RandomOracle<T>,
+        step: usize,
     ) -> Self {
         Verifier {
             total_round,
             interpolate_cosets: coset.clone(),
             oracle: oracle.clone(),
-            polynomial_roots: vec![MerkleTreeVerifier::new(coset[0].size() / 2, &commit)],
+            polynomial_roots: vec![MerkleTreeVerifier::new(
+                coset[0].size() / (1 << step),
+                &commit,
+            )],
             final_value: None,
+            final_poly: None,
             sumcheck_values: vec![],
             open_point: (0..total_round).map(|_| T::random_element()).collect(),
             evaluation: None,
+            step,
         }
     }
 
@@ -64,39 +73,92 @@ impl<T: MyField> Verifier<T> {
         self.final_value = Some(value);
     }
 
+    pub fn set_final_poly(&mut self, poly: Polynomial<T>) {
+        self.final_poly = Some(poly);
+    }
+
     pub fn verify(&self, polynomial_proof: &Vec<QueryResult<T>>) -> bool {
         let mut leaf_indices = self.oracle.query_list.clone();
         let mut sum = self.sumcheck_values[0].0 + self.sumcheck_values[0].1;
-        for i in 0..self.total_round {
-            let domain_size = self.interpolate_cosets[i].size();
+        for i in 0..self.total_round / self.step {
+            let domain_size = self.interpolate_cosets[i * self.step].size();
             leaf_indices = leaf_indices
                 .iter_mut()
-                .map(|v| *v % (domain_size >> 1))
+                .map(|v| *v % (domain_size / (1 << self.step)))
                 .collect();
             leaf_indices.sort();
             leaf_indices.dedup();
 
-            polynomial_proof[i].verify_merkle_tree(&leaf_indices, 2, &self.polynomial_roots[i]);
+            polynomial_proof[i].verify_merkle_tree(
+                &leaf_indices,
+                1 << self.step,
+                &self.polynomial_roots[i],
+            );
             let folding_value = &polynomial_proof[i].proof_values;
-            let challenge = self.oracle.folding_challenges[i];
 
-            let x_0 = self.sumcheck_values[i].0;
-            let x_1 = self.sumcheck_values[i].1;
-            let x_2 = self.sumcheck_values[i].2;
-            assert_eq!(sum, x_0 + x_1);
-            sum =
-                x_0 * (T::from_int(1) - challenge) * (T::from_int(2) - challenge) * T::inverse_2()
+            for k in 0..self.step {
+                let challenge = self.oracle.folding_challenges[i * self.step + k];
+
+                let x_0 = self.sumcheck_values[i * self.step + k].0;
+                let x_1 = self.sumcheck_values[i * self.step + k].1;
+                let x_2 = self.sumcheck_values[i * self.step + k].2;
+                assert_eq!(sum, x_0 + x_1);
+                sum = x_0
+                    * (T::from_int(1) - challenge)
+                    * (T::from_int(2) - challenge)
+                    * T::inverse_2()
                     + x_1 * challenge * (T::from_int(2) - challenge)
                     + x_2 * challenge * (challenge - T::from_int(1)) * T::inverse_2();
-            for j in &leaf_indices {
-                let x = folding_value[j];
-                let nx = folding_value[&(j + domain_size / 2)];
-                let v =
-                    x + nx + challenge * (x - nx) * self.interpolate_cosets[i].element_inv_at(*j);
-                if i == self.total_round - 1 {
-                    assert_eq!(v * T::inverse_2(), self.final_value.unwrap());
+            }
+
+            for k in &leaf_indices {
+                let mut x;
+                let mut nx;
+                let mut verify_values = vec![];
+                let mut verify_inds = vec![];
+                for j in 0..(1 << self.step) {
+                    // Init verify values, which is the total values in the first step
+                    let ind = k + j * domain_size / (1 << self.step);
+                    verify_values.push(folding_value[&ind]);
+                    verify_inds.push(ind);
+                }
+                for j in 0..self.step {
+                    let challenge = self.oracle.folding_challenges[i * self.step + j];
+                    let size = verify_values.len();
+                    let mut tmp_values = vec![];
+                    let mut tmp_inds = vec![];
+                    for l in 0..size / 2 {
+                        x = verify_values[l];
+                        nx = verify_values[l + size / 2];
+                        tmp_values.push(
+                            (x + nx
+                                + challenge
+                                    * (x - nx)
+                                    * self.interpolate_cosets[i * self.step + j]
+                                        .element_inv_at(verify_inds[l]))
+                                * T::inverse_2(),
+                        );
+                        tmp_inds.push(verify_inds[l]);
+                    }
+                    verify_values = tmp_values;
+                    verify_inds = tmp_inds;
+                }
+                // // ----------------------
+                // for k in 0..self.step {
+                //     let challenge = self.oracle.folding_challenges[i*self.step + k];
+                //     let x = folding_value[j];
+                //     let nx = folding_value[&(j + domain_size / 2)];
+                //     let v =
+                //         x + nx + challenge * (x - nx) * self.interpolate_cosets[i].element_inv_at(*j);
+                // }
+
+                assert_eq!(verify_values.len(), 1);
+                let v = verify_values[0];
+                if i == self.total_round / self.step - 1 {
+                    let point = self.interpolate_cosets[(i + 1) * self.step].element_at(*k);
+                    assert_eq!(v, self.final_poly.clone().unwrap().evaluation_at(point));
                 } else {
-                    assert_eq!(v * T::inverse_2(), polynomial_proof[i + 1].proof_values[j]);
+                    assert_eq!(v, polynomial_proof[i + 1].proof_values[k]);
                 }
             }
         }

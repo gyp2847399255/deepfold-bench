@@ -11,11 +11,11 @@ use util::{
     random_oracle::RandomOracle,
 };
 
-use util::{CODE_RATE, SECURITY_BITS};
+use util::{CODE_RATE, SECURITY_BITS, STEP};
 fn commit<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
-    for i in 1..variable_num {
+    for i in 1..variable_num + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(
@@ -30,7 +30,7 @@ fn commit<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
             b.iter_batched(
                 || polynomial.clone(),
                 |p| {
-                    let prover = Prover::new(variable_num, &interpolate_cosets, p, &oracle);
+                    let prover = Prover::new(variable_num, &interpolate_cosets, p, &oracle, STEP);
                     let _commit = prover.commit_polynomial();
                 },
                 BatchSize::SmallInput,
@@ -40,7 +40,7 @@ fn commit<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_commit(c: &mut Criterion) {
-    for i in 10..23 {
+    for i in 10..18 {
         commit::<Mersenne61Ext>(c, i);
         // commit::<Ft255>(c, i);
     }
@@ -49,7 +49,7 @@ fn bench_commit(c: &mut Criterion) {
 fn open<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
-    for i in 1..variable_num {
+    for i in 1..variable_num + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(
@@ -57,9 +57,9 @@ fn open<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
         (SECURITY_BITS as f32 / (2.0 / (1.0 + 0.5_f32.powi(CODE_RATE as i32))).log2()).ceil()
             as usize,
     );
-    let prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
+    let prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle, STEP);
     let commit = prover.commit_polynomial();
-    let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
+    let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle, STEP);
     let point = verifier.get_open_point();
 
     criterion.bench_function(
@@ -80,7 +80,7 @@ fn open<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_open(c: &mut Criterion) {
-    for i in 10..23 {
+    for i in 10..18 {
         open::<Mersenne61Ext>(c, i);
         // open::<Ft255>(c, i);
     }
@@ -89,7 +89,7 @@ fn bench_open(c: &mut Criterion) {
 fn verify<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
-    for i in 1..variable_num {
+    for i in 1..variable_num + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(
@@ -97,9 +97,9 @@ fn verify<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
         (SECURITY_BITS as f32 / (2.0 / (1.0 + 0.5_f32.powi(CODE_RATE as i32))).log2()).ceil()
             as usize,
     );
-    let mut prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
+    let mut prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle, STEP);
     let commit = prover.commit_polynomial();
-    let mut verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
+    let mut verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle, STEP);
     let point = verifier.get_open_point();
     prover.send_evaluation(&mut verifier, &point);
     prover.prove(&point);
@@ -117,7 +117,7 @@ fn verify<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_verify(c: &mut Criterion) {
-    for i in 10..23 {
+    for i in 10..18 {
         verify::<Mersenne61Ext>(c, i);
         // verify::<Ft255>(c, i);
     }
