@@ -20,7 +20,7 @@ fn commit(criterion: &mut Criterion, variable_num: usize) {
         1 << (variable_num + CODE_RATE),
         Mersenne61Ext::random_element(),
     )];
-    for i in 1..variable_num+1 {
+    for i in 1..variable_num + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let random_oracle = RandomOracle::new(total_round, SECURITY_BITS / CODE_RATE);
@@ -57,7 +57,7 @@ fn open(criterion: &mut Criterion, variable_num: usize) {
         1 << (variable_num + CODE_RATE),
         Mersenne61Ext::random_element(),
     )];
-    for i in 1..variable_num+1 {
+    for i in 1..variable_num + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let random_oracle = RandomOracle::new(total_round, SECURITY_BITS / CODE_RATE);
@@ -107,7 +107,7 @@ fn verify(criterion: &mut Criterion, variable_num: usize) {
         1 << (variable_num + CODE_RATE),
         Mersenne61Ext::random_element(),
     )];
-    for i in 1..variable_num+1 {
+    for i in 1..variable_num + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let random_oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);

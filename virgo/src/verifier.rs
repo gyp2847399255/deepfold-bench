@@ -19,7 +19,6 @@ pub struct FriVerifier<T: MyField> {
     folding_root: Vec<MerkleTreeVerifier>,
     oracle: RandomOracle<T>,
     vanishing_polynomial: VanishingPolynomial<T>,
-    final_value: Option<T>,
     final_poly: Option<Polynomial<T>>,
     evaluation: Option<T>,
     open_point: Option<Vec<T>>,
@@ -47,7 +46,6 @@ impl<T: MyField> FriVerifier<T> {
             folding_root: vec![],
             oracle: oracle.clone(),
             vanishing_polynomial: VanishingPolynomial::new(vector_interpolation_coset),
-            final_value: None,
             final_poly: None,
             open_point: None,
             evaluation: None,
@@ -85,11 +83,6 @@ impl<T: MyField> FriVerifier<T> {
         });
     }
 
-    pub fn set_final_value(&mut self, value: T) {
-        assert_ne!(value, T::from_int(0));
-        self.final_value = Some(value);
-    }
-
     pub fn set_final_poly(&mut self, poly: Polynomial<T>) {
         self.final_poly = Some(poly);
     }
@@ -105,13 +98,17 @@ impl<T: MyField> FriVerifier<T> {
         let h_size = T::from_int(self.vector_interpolation_coset.size() as u64);
         for i in 0..self.total_round / self.step {
             // cauchy: verify mt and define get_folding_value fn outside step loop
-            let len = self.interpolate_cosets[i*self.step].size() / (1 << self.step);
+            let len = self.interpolate_cosets[i * self.step].size() / (1 << self.step);
             leaf_indices = leaf_indices.iter_mut().map(|v| *v % len).collect();
             leaf_indices.sort();
             leaf_indices.dedup();
 
             if i == 0 {
-                assert!(function_proofs[0].verify_merkle_tree(&leaf_indices, 1 << self.step, &self.u_root));
+                assert!(function_proofs[0].verify_merkle_tree(
+                    &leaf_indices,
+                    1 << self.step,
+                    &self.u_root
+                ));
                 assert!(function_proofs[1].verify_merkle_tree(
                     &leaf_indices,
                     1 << self.step,
@@ -130,8 +127,8 @@ impl<T: MyField> FriVerifier<T> {
                     let u = function_proofs[0].proof_values[index];
                     let h = function_proofs[1].proof_values[index];
                     let v = v_values[index];
-                    let x = self.interpolate_cosets[i*self.step].element_at(*index);
-                    let x_inv = self.interpolate_cosets[i*self.step].element_inv_at(*index);
+                    let x = self.interpolate_cosets[i * self.step].element_at(*index);
+                    let x_inv = self.interpolate_cosets[i * self.step].element_inv_at(*index);
 
                     let mut res = u;
                     let mut acc = rlc;
@@ -160,9 +157,9 @@ impl<T: MyField> FriVerifier<T> {
                     verify_values.push(get_folding_value(&ind));
                     verify_inds.push(ind);
                 }
-                
+
                 for j in 0..self.step {
-                    let challenge = self.oracle.folding_challenges[i*self.step + j];
+                    let challenge = self.oracle.folding_challenges[i * self.step + j];
                     let size = verify_values.len();
                     let mut tmp_values = vec![];
                     let mut tmp_inds = vec![];
@@ -186,14 +183,12 @@ impl<T: MyField> FriVerifier<T> {
                 let v = verify_values[0];
                 if i < self.total_round / self.step - 1 {
                     if v != folding_proofs[i].proof_values[k] {
-                        panic!("{}", i);
-                        return false;
+                        panic!("{}", i)
                     }
                 } else {
-                    let point = self.interpolate_cosets[(i+1)*self.step].element_at(*k);
+                    let point = self.interpolate_cosets[(i + 1) * self.step].element_at(*k);
                     if v != self.final_poly.as_ref().unwrap().evaluation_at(point) {
-                        panic!();
-                        return false;
+                        panic!()
                     }
                 }
             }

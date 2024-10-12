@@ -37,7 +37,11 @@ impl<T: MyField> InterpolateValue<T> {
                 })
                 .collect(),
         );
-        Self { value, leaf_size, merkle_tree }
+        Self {
+            value,
+            leaf_size,
+            merkle_tree,
+        }
     }
 
     fn leave_num(&self) -> usize {
@@ -80,7 +84,6 @@ pub struct FriProver<T: MyField> {
     foldings: Vec<InterpolateValue<T>>,
     oracle: RandomOracle<T>,
     evaluation: Option<T>,
-    final_value: Option<T>,
     final_poly: Option<Polynomial<T>>,
     step: usize,
 }
@@ -111,7 +114,6 @@ impl<T: MyField> FriProver<T> {
             foldings: vec![],
             oracle: oracle.clone(),
             evaluation: None,
-            final_value: None,
             final_poly: None,
             step,
         }
@@ -136,7 +138,10 @@ impl<T: MyField> FriProver<T> {
         let h = Coset::mult(&self.poly_u, &poly_v)
             .over_vanish_polynomial(&VanishingPolynomial::new(&self.vector_interpolation_coset));
         assert!(h.degree() < self.vector_interpolation_coset.size());
-        let function_h = InterpolateValue::new(self.fri_cosets[0].fft(h.coefficients().clone()), 1 << self.step);
+        let function_h = InterpolateValue::new(
+            self.fri_cosets[0].fft(h.coefficients().clone()),
+            1 << self.step,
+        );
         verifier.set_h_root(function_h.commit());
         self.function_h = Some(function_h);
         self.interpolation_v = Some(self.fri_cosets[0].fft(poly_v.coefficients().clone()));
@@ -218,7 +223,7 @@ impl<T: MyField> FriProver<T> {
         for i in 0..self.total_round / self.step {
             let mut challenge = vec![];
             for j in 0..self.step {
-                challenge.push(self.oracle.folding_challenges[i*self.step + j]);
+                challenge.push(self.oracle.folding_challenges[i * self.step + j]);
             }
             // let challenge = self.oracle.folding_challenges[i];
             let next_evalutation = self.evaluation_next_domain(i, challenge);
@@ -241,31 +246,33 @@ impl<T: MyField> FriProver<T> {
         let leaf_size = 1 << self.step as usize;
 
         for i in 0..self.total_round / self.step {
-                let len = self.fri_cosets[i*self.step].size() / (1 << self.step);
-                leaf_indices = leaf_indices.iter_mut().map(|v| *v % len).collect();
-                leaf_indices.sort();
-                leaf_indices.dedup();
+            let len = self.fri_cosets[i * self.step].size() / (1 << self.step);
+            leaf_indices = leaf_indices.iter_mut().map(|v| *v % len).collect();
+            leaf_indices.sort();
+            leaf_indices.dedup();
 
-                if i == 0 {
-                    functions_res = Some(vec![
-                        self.function_u.query(&leaf_indices),
-                        self.function_h.as_ref().unwrap().query(&leaf_indices),
-                    ]);
-                    let interpolation_v = self.interpolation_v.as_ref().unwrap();
-                    v_value = Some(
-                        leaf_indices
-                            .iter()
-                            .flat_map(|j| {
-                                (0..leaf_size).map(
-                                    |k: usize| { (j.clone()+k*len, interpolation_v[j.clone()+k*len]) }
-                                ).collect::<Vec<_>>()
-                            })
-                            .collect(),
-                    );
-                } else {
-                    let query_result = self.foldings[i-1].query(&leaf_indices);
-                    folding_res.push(query_result);
-                }
+            if i == 0 {
+                functions_res = Some(vec![
+                    self.function_u.query(&leaf_indices),
+                    self.function_h.as_ref().unwrap().query(&leaf_indices),
+                ]);
+                let interpolation_v = self.interpolation_v.as_ref().unwrap();
+                v_value = Some(
+                    leaf_indices
+                        .iter()
+                        .flat_map(|j| {
+                            (0..leaf_size)
+                                .map(|k: usize| {
+                                    (j.clone() + k * len, interpolation_v[j.clone() + k * len])
+                                })
+                                .collect::<Vec<_>>()
+                        })
+                        .collect(),
+                );
+            } else {
+                let query_result = self.foldings[i - 1].query(&leaf_indices);
+                folding_res.push(query_result);
+            }
         }
         (folding_res, functions_res.unwrap(), v_value.unwrap())
     }
