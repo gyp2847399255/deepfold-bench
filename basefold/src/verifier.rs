@@ -98,7 +98,8 @@ impl<T: MyField> Verifier<T> {
 
             for k in 0..self.step {
                 let challenge = self.oracle.folding_challenges[i * self.step + k];
-                sum = self.process_sumcheck(challenge, sum, self.sumcheck_values[i * self.step + k]);
+                sum =
+                    self.process_sumcheck(challenge, sum, self.sumcheck_values[i * self.step + k]);
 
                 // let x_0 = self.sumcheck_values[i * self.step + k].0;
                 // let x_1 = self.sumcheck_values[i * self.step + k].1;
@@ -156,16 +157,25 @@ impl<T: MyField> Verifier<T> {
                 assert_eq!(verify_values.len(), 1);
                 let v = verify_values[0];
 
-                if i == self.total_round / self.step { 
+                if i == self.total_round / self.step {
                     let mut j = 0;
-                    while i * self.step+j<self.total_round {
+                    while i * self.step + j < self.total_round {
                         let challenge = self.oracle.folding_challenges[i * self.step + k];
-                        sum = self.process_sumcheck(challenge, sum, self.sumcheck_values[i * self.step + k]);
-                        j+=1;
+                        sum = self.process_sumcheck(
+                            challenge,
+                            sum,
+                            self.sumcheck_values[i * self.step + k],
+                        );
+                        j += 1;
                     }
                     let eq_poly = EqMultilinear::new(self.open_point.clone());
-                    assert_eq!(v, sum * T::inverse(&eq_poly.evaluate(&self.oracle.folding_challenges[0..self.total_round].to_vec())))
-                } else if i == self.total_round / self.step - 1 {  
+                    assert_eq!(
+                        v,
+                        sum * T::inverse(&eq_poly.evaluate(
+                            &self.oracle.folding_challenges[0..self.total_round].to_vec()
+                        ))
+                    )
+                } else if i == self.total_round / self.step - 1 {
                     let point = self.interpolate_cosets[(i + 1) * self.step].element_at(*k);
                     assert_eq!(v, self.final_poly.clone().unwrap().evaluation_at(point));
                 } else {
@@ -181,13 +191,10 @@ impl<T: MyField> Verifier<T> {
         let x_1 = sumcheck_values.1;
         let x_2 = sumcheck_values.2;
         assert_eq!(last_sum, x_0 + x_1);
-        let sum = x_0
-            * (T::from_int(1) - challenge)
-            * (T::from_int(2) - challenge)
-            * T::inverse_2()
-            + x_1 * challenge * (T::from_int(2) - challenge)
-            + x_2 * challenge * (challenge - T::from_int(1)) * T::inverse_2();
+        let sum =
+            x_0 * (T::from_int(1) - challenge) * (T::from_int(2) - challenge) * T::inverse_2()
+                + x_1 * challenge * (T::from_int(2) - challenge)
+                + x_2 * challenge * (challenge - T::from_int(1)) * T::inverse_2();
         sum
     }
 }
-
