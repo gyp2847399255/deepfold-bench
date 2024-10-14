@@ -13,7 +13,6 @@ pub struct Verifier<T: MyField> {
     interpolate_cosets: Vec<Coset<T>>,
     polynomial_roots: Vec<MerkleTreeVerifier>,
     oracle: RandomOracle<T>,
-    final_value: Option<T>,
     final_poly: Option<Polynomial<T>>,
     sumcheck_values: Vec<(T, T, T)>,
     open_point: Vec<T>,
@@ -37,7 +36,6 @@ impl<T: MyField> Verifier<T> {
                 coset[0].size() / (1 << step),
                 &commit,
             )],
-            final_value: None,
             final_poly: None,
             sumcheck_values: vec![],
             open_point: (0..total_round).map(|_| T::random_element()).collect(),
@@ -69,10 +67,6 @@ impl<T: MyField> Verifier<T> {
         self.evaluation = Some(evaluation);
     }
 
-    pub fn set_final_value(&mut self, value: T) {
-        self.final_value = Some(value);
-    }
-
     pub fn set_final_poly(&mut self, poly: Polynomial<T>) {
         self.final_poly = Some(poly);
     }
@@ -100,17 +94,6 @@ impl<T: MyField> Verifier<T> {
                 let challenge = self.oracle.folding_challenges[i * self.step + k];
                 sum =
                     self.process_sumcheck(challenge, sum, self.sumcheck_values[i * self.step + k]);
-
-                // let x_0 = self.sumcheck_values[i * self.step + k].0;
-                // let x_1 = self.sumcheck_values[i * self.step + k].1;
-                // let x_2 = self.sumcheck_values[i * self.step + k].2;
-                // assert_eq!(sum, x_0 + x_1);
-                // sum = x_0
-                //     * (T::from_int(1) - challenge)
-                //     * (T::from_int(2) - challenge)
-                //     * T::inverse_2()
-                //     + x_1 * challenge * (T::from_int(2) - challenge)
-                //     + x_2 * challenge * (challenge - T::from_int(1)) * T::inverse_2();
             }
 
             for k in &leaf_indices {

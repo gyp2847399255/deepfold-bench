@@ -21,7 +21,6 @@ pub struct Prover<T: MyField> {
     hypercube_interpolation: Vec<T>,
     sumcheck_value: Vec<(T, T, T)>,
     oracle: RandomOracle<T>,
-    final_value: Option<T>,
     final_poly: Option<Polynomial<T>>,
     step: usize,
 }
@@ -45,7 +44,6 @@ impl<T: MyField> Prover<T> {
             polynomial,
             sumcheck_value: vec![],
             oracle: oracle.clone(),
-            final_value: None,
             final_poly: None,
             step,
         }
