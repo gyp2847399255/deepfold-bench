@@ -1,6 +1,6 @@
 use std::mem::size_of;
 
-use util::{algebra::field::MyField, merkle_tree::MERKLE_ROOT_SIZE, query_result::QueryResult};
+use util::{algebra::{field::MyField, polynomial::Polynomial}, merkle_tree::MERKLE_ROOT_SIZE, query_result::QueryResult};
 
 pub mod prover;
 pub mod verifier;
@@ -72,6 +72,7 @@ pub struct Proof<T: MyField> {
     shuffle_evals: Vec<T>,
     evaluation: T,
     final_value: T,
+    final_poly: Polynomial<T>,
 }
 
 impl<T: MyField> Proof<T> {
@@ -100,19 +101,19 @@ mod tests {
         },
         random_oracle::RandomOracle,
     };
-    use util::{CODE_RATE, SECURITY_BITS};
+    use util::{CODE_RATE, SECURITY_BITS, STEP};
 
     fn output_proof_size<T: MyField>(variable_num: usize) -> usize {
         let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
         let mut interpolate_cosets =
             vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
-        for i in 1..variable_num {
+        for i in 1..variable_num+1 {
             interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
         }
         let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
-        let prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
+        let prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle, STEP);
         let commit = prover.commit_polynomial();
-        let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
+        let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle, STEP);
         let point = verifier.get_open_point();
         let proof = prover.generate_proof(point);
         let size = proof.size();
@@ -123,7 +124,7 @@ mod tests {
     #[test]
     fn test_proof_size() {
         let mut wtr = Writer::from_path("deepfold.csv").unwrap();
-        let range = 5..23;
+        let range = 10..18;
         for i in range.clone() {
             let proof_size = output_proof_size::<M31ext>(i);
             wtr.write_record(&[i.to_string(), proof_size.to_string()])
@@ -131,3 +132,4 @@ mod tests {
         }
     }
 }
+
