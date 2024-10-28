@@ -1,6 +1,10 @@
 use std::mem::size_of;
 
-use util::{algebra::{field::MyField, polynomial::Polynomial}, merkle_tree::MERKLE_ROOT_SIZE, query_result::QueryResult};
+use util::{
+    algebra::{field::MyField, polynomial::Polynomial},
+    merkle_tree::MERKLE_ROOT_SIZE,
+    query_result::QueryResult,
+};
 
 pub mod prover;
 pub mod verifier;
@@ -107,7 +111,7 @@ mod tests {
         let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
         let mut interpolate_cosets =
             vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
-        for i in 1..variable_num+1 {
+        for i in 1..variable_num + 1 {
             interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
         }
         let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
@@ -132,4 +136,3 @@ mod tests {
         }
     }
 }
-

@@ -36,7 +36,7 @@ impl<T: MyField> Verifier<T> {
             interpolate_cosets: coset.clone(),
             oracle: oracle.clone(),
             polynomial_roots: vec![MerkleTreeVerifier::new(
-                coset[0].size() / (1 << step),  // todo: 2?
+                coset[0].size() / (1 << step), // todo: 2?
                 &commit.merkle_root,
             )],
             first_deep: commit.deep,
@@ -89,7 +89,7 @@ impl<T: MyField> Verifier<T> {
     fn _verify(&self, polynomial_proof: &Vec<QueryResult<T>>) -> bool {
         let mut leaf_indices = self.oracle.query_list.clone();
         for i in 0..self.total_round / self.step {
-            let domain_size = self.interpolate_cosets[i*self.step].size();
+            let domain_size = self.interpolate_cosets[i * self.step].size();
             leaf_indices = leaf_indices
                 .iter_mut()
                 .map(|v| *v % (domain_size / (1 << self.step)))
@@ -97,7 +97,11 @@ impl<T: MyField> Verifier<T> {
             leaf_indices.sort();
             leaf_indices.dedup();
 
-            polynomial_proof[i].verify_merkle_tree(&leaf_indices, 1 << self.step, &self.polynomial_roots[i]);
+            polynomial_proof[i].verify_merkle_tree(
+                &leaf_indices,
+                1 << self.step,
+                &self.polynomial_roots[i],
+            );
 
             if i == self.total_round / self.step - 1 {
                 let challenges = self.oracle.folding_challenges[0..self.total_round].to_vec();
@@ -147,7 +151,8 @@ impl<T: MyField> Verifier<T> {
                                 + challenge[j]
                                     * (x - nx)
                                     * self.interpolate_cosets[i * self.step + j]
-                                        .element_inv_at(verify_inds[l])) * T::inverse_2(),
+                                        .element_inv_at(verify_inds[l]))
+                                * T::inverse_2(),
                         );
                         tmp_inds.push(verify_inds[l]);
                     }

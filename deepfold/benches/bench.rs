@@ -15,7 +15,7 @@ use util::{CODE_RATE, SECURITY_BITS, STEP};
 fn commit<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
-    for i in 1..variable_num+1 {
+    for i in 1..variable_num + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
@@ -41,7 +41,7 @@ fn bench_commit(c: &mut Criterion) {
 fn open<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
-    for i in 1..variable_num+1 {
+    for i in 1..variable_num + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
@@ -70,7 +70,7 @@ fn bench_open(c: &mut Criterion) {
 fn verify<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
-    for i in 1..variable_num+1 {
+    for i in 1..variable_num + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
