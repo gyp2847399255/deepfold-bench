@@ -46,7 +46,7 @@ impl<T: MyField> InterpolateValue<T> {
         assert_eq!(len * self.leaf_size, self.value.len());
         let proof_values = leaf_indices
             .iter()
-            .flat_map(|j| {
+            .flat_map(|j: &usize| {
                 (0..self.leaf_size)
                     .map(|i| (j.clone() + len * i, self.value[j.clone() + len * i]))
                     .collect::<Vec<_>>()

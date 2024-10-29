@@ -1,4 +1,9 @@
 use crate::merkle_tree::MERKLE_ROOT_SIZE;
+use rand::RngCore;
+use std::{
+    fmt::Debug,
+    ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign},
+};
 
 pub mod bn254;
 pub mod ft255;
@@ -59,6 +64,59 @@ pub trait MyField:
         }
         ret
     }
+}
+
+// Cauchy: define AnotherField, FftField trait for goldilocks and goldilocks64ext from DeepFold-Hyperplonk
+
+pub trait AnotherField:
+    Copy
+    + Clone
+    + Debug
+    + Default
+    + PartialEq
+    + From<u32>
+    + From<Self::BaseField>
+    + Neg<Output = Self>
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + AddAssign
+    + SubAssign
+    + MulAssign
+    + MyField
+{
+    const NAME: &'static str;
+    const SIZE: usize;
+    const INV_2: Self;
+    const ZERO: Self;
+    const UNIT: Self;
+    type BaseField: AnotherField;
+
+    fn zero() -> Self;
+    // fn is_zero(&self) -> bool;
+    fn one() -> Self;
+    fn random(rng: impl RngCore) -> Self;
+    fn square(&self) -> Self {
+        self.clone() * self.clone()
+    }
+    fn double(&self) -> Self {
+        self.clone() + self.clone()
+    }
+    fn exp(&self, exponent: usize) -> Self;
+    fn inv(&self) -> Option<Self>;
+    fn add_base_elem(&self, rhs: Self::BaseField) -> Self;
+    fn add_assign_base_elem(&mut self, rhs: Self::BaseField);
+    fn mul_base_elem(&self, rhs: Self::BaseField) -> Self;
+    fn mul_assign_base_elem(&mut self, rhs: Self::BaseField);
+    fn from_uniform_bytes(bytes: &[u8; 32]) -> Self;
+    fn serialize_into(&self, buffer: &mut [u8]);
+    fn deserialize_from(buffer: &[u8]) -> Self;
+}
+
+pub trait FftField: AnotherField + From<Self::FftBaseField> {
+    const LOG_ORDER: u32;
+    const ROOT_OF_UNITY: Self;
+    type FftBaseField: FftField<BaseField = Self::BaseField>;
 }
 
 #[inline]

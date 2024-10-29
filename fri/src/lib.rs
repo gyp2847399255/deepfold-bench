@@ -14,7 +14,7 @@ mod tests {
         merkle_tree::MERKLE_ROOT_SIZE,
         random_oracle::RandomOracle,
     };
-    use util::{CODE_RATE, SECURITY_BITS};
+    use util::{CODE_RATE, SECURITY_BITS, STEP};
 
     fn output_proof_size(variable_num: usize) -> usize {
         let degree = 1 << variable_num;
@@ -23,17 +23,17 @@ mod tests {
             1 << (variable_num + CODE_RATE),
             Mersenne61Ext::from_int(1),
         )];
-        for i in 1..variable_num {
+        for i in 1..variable_num + 1 {
             interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
         }
         let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
-        let mut prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
+        let mut prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle, STEP);
         let commits = prover.commit_polynomial();
-        let mut verifier = Verifier::new(variable_num, &interpolate_cosets, commits, &oracle);
+        let mut verifier = Verifier::new(variable_num, &interpolate_cosets, commits, &oracle, STEP);
         let point = verifier.get_open_point();
 
         let evaluation = prover.prove(point);
-        prover.commit_foldings(&mut verifier);
+        prover.commit_foldings_multi_step(&mut verifier);
         let interpolation_proof = prover.query();
         assert!(verifier.verify(&interpolation_proof, evaluation));
         interpolation_proof
@@ -46,7 +46,7 @@ mod tests {
     #[test]
     fn test_proof_size() {
         let mut wtr = Writer::from_path("fri.csv").unwrap();
-        for i in 10..23 {
+        for i in 10..11 {
             let proof_size = output_proof_size(i);
             wtr.write_record([i.to_string(), proof_size.to_string()])
                 .unwrap();

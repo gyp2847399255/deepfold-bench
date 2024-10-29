@@ -5,17 +5,17 @@ use deepfold::{prover::Prover, verifier::Verifier};
 use util::{
     algebra::{
         coset::Coset,
-        field::{m31_ext::M31ext, mersenne61_ext::Mersenne61Ext, MyField},
+        field::{mersenne61_ext::Mersenne61Ext, MyField},
         polynomial::MultilinearPolynomial,
     },
     random_oracle::RandomOracle,
 };
 
-use util::{CODE_RATE, SECURITY_BITS};
+use util::{CODE_RATE, SECURITY_BITS, STEP};
 fn commit<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
-    for i in 1..variable_num {
+    for i in 1..variable_num + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
@@ -24,7 +24,7 @@ fn commit<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
         b.iter_batched(
             || polynomial.clone(),
             |p| {
-                let prover = Prover::new(variable_num, &interpolate_cosets, p, &oracle);
+                let prover = Prover::new(variable_num, &interpolate_cosets, p, &oracle, STEP);
                 let _commit = prover.commit_polynomial();
             },
             BatchSize::SmallInput,
@@ -33,7 +33,7 @@ fn commit<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_commit(c: &mut Criterion) {
-    for i in 5..23 {
+    for i in 5..15 {
         commit::<Mersenne61Ext>(c, i);
     }
 }
@@ -41,13 +41,13 @@ fn bench_commit(c: &mut Criterion) {
 fn open<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
-    for i in 1..variable_num {
+    for i in 1..variable_num + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
-    let prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
+    let prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle, STEP);
     let commit = prover.commit_polynomial();
-    let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
+    let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle, STEP);
     let point = verifier.get_open_point();
 
     criterion.bench_function(&format!("deepfold open {:02}", variable_num), move |b| {
@@ -62,7 +62,7 @@ fn open<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_open(c: &mut Criterion) {
-    for i in 5..23 {
+    for i in 5..15 {
         open::<Mersenne61Ext>(c, i);
     }
 }
@@ -70,13 +70,13 @@ fn bench_open(c: &mut Criterion) {
 fn verify<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
     let polynomial = MultilinearPolynomial::random_polynomial(variable_num);
     let mut interpolate_cosets = vec![Coset::new(1 << (variable_num + CODE_RATE), T::from_int(1))];
-    for i in 1..variable_num {
+    for i in 1..variable_num + 1 {
         interpolate_cosets.push(interpolate_cosets[i - 1].pow(2));
     }
     let oracle = RandomOracle::new(variable_num, SECURITY_BITS / CODE_RATE);
-    let prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle);
+    let prover = Prover::new(variable_num, &interpolate_cosets, polynomial, &oracle, STEP);
     let commit = prover.commit_polynomial();
-    let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle);
+    let verifier = Verifier::new(variable_num, &interpolate_cosets, commit, &oracle, STEP);
     let point = verifier.get_open_point();
     let proof = prover.generate_proof(point);
 
@@ -92,7 +92,7 @@ fn verify<T: MyField>(criterion: &mut Criterion, variable_num: usize) {
 }
 
 fn bench_verify(c: &mut Criterion) {
-    for i in 5..23 {
+    for i in 5..15 {
         verify::<Mersenne61Ext>(c, i);
     }
 }
